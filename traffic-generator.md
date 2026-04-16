@@ -1,4 +1,4 @@
-nohup locust -f locustfile.py --host=https://vulnbank.mytechlab.my.id --headless --users 50 --spawn-rate 5 --run-time 3d > locust.log 2>&1 &
+nohup locust -f locustfile.py --host=https://vulnbank.mytechlab.my.id --headless --users 50 --spawn-rate 5 --run-time 240h > locust.log 2>&1 &
 
 
 Start logrotate setup **first**, before running Locust. That way the rotation is already watching the file from the moment it gets created.

@@ -1,95 +1,74 @@
-# F5 Distributed Cloud — Demo Environment Setup
+# F5 Distributed Cloud — Demo Environment
 
-A step-by-step guide to setting up a complete demo environment for **F5 Distributed Cloud (XC)**, covering:
+## Introduction
 
-1. [Backend Demo Apps](#1-backend-demo-apps)
-2. [F5 XC Configuration](#2-f5-xc-configuration)
-3. [Traffic Generator](#3-traffic-generator)
+This repo is a step-by-step guide to setting up a demo environment for **F5 Distributed Cloud (XC)**. It covers three areas:
+
+1. Deploying the backend demo application (**vuln-bank**) on a Linux server — see [VULN-APP.md](VULN-APP.md)
+2. Configuring F5 XC security services (WAAP, Bot Defense, API Discovery) via the Postman collection — see [xc-config.md](xc-config.md)
+3. Setting up a traffic generator to produce continuous, realistic traffic through the XC load balancer — see [traffic-generator.md](traffic-generator.md)
 
 ---
 
-## Architecture Overview
+## Components
 
 ```
 Android Device / Browser
         │
         │  HTTPS
         ▼
-F5 Distributed Cloud (XC)
-  ├── HTTP Load Balancer (lb-vuln-bank)
-  │     ├── WAAP / App Firewall (policy-vuln-bank)
-  │     ├── Bot Defense
-  │     └── API Discovery
-  └── Origin Pool (origin-vuln-bank)
-              │
-              │  HTTP :5000
-              ▼
-        Backend Server (Linux)
-          ├── vuln-bank (Flask API)  ← port 5000
-          └── PostgreSQL             ← port 5432 (internal)
+┌─────────────────────────────────────────┐
+│         F5 Distributed Cloud (XC)       │
+│  ┌──────────────────────────────────┐   │
+│  │  HTTP Load Balancer (lb-vuln-bank│   │
+│  │  ├── WAAP / App Firewall         │   │
+│  │  ├── Bot Defense                 │   │
+│  │  └── API Discovery & Testing     │   │
+│  └──────────────┬───────────────────┘   │
+│                 │ Origin Pool           │
+└─────────────────┼───────────────────────┘
+                  │  HTTP :5000
+                  ▼
+        ┌──────────────────┐
+        │  Backend Server  │
+        │  ├── vuln-bank   │
+        │  │   (Flask API) │
+        │  └── PostgreSQL  │
+        └──────────────────┘
 
-Traffic Generator Server (Linux)
-  └── Locust → sends simulated traffic → F5 XC endpoint
+Traffic Generator Server
+  └── Locust ──────────────────────────▶ XC Load Balancer endpoint
 ```
 
----
+### 1. F5 XC WAAP and Bot Defense
 
-## 1. Backend Demo Apps
+**F5 Distributed Cloud** is a SaaS-delivered security and networking platform. In this demo, it sits in front of the vuln-bank backend and acts as the single point of entry for all traffic.
 
-The backend consists of two components from the [vuln-bank](https://github.com/Commando-X/vuln-bank) project:
+Key capabilities used in this demo:
 
-- **vuln-bank** — a deliberately vulnerable Flask banking API (the backend)
-- **vuln-bank-mobile** — a React Native mobile app that calls the Flask API
+| Capability | Description |
+|---|---|
+| **WAAP (Web App & API Protection)** | WAF that inspects HTTP traffic and blocks OWASP Top 10 attacks (SQLi, XSS, RCE, etc.) in real time |
+| **Bot Defense** | Detects and mitigates automated bot traffic on protected endpoints (e.g. `/login`) using JS telemetry and behavioral analysis |
+| **API Discovery** | Automatically maps all API endpoints observed in traffic, including shadow and unauthenticated endpoints |
+| **AI Enhancements** | Risk-based threat scoring that adjusts blocking behavior based on attack confidence |
+| **DDoS / L7 Protection** | Rate limiting and volumetric attack mitigation at the application layer |
 
-Full setup instructions are in [VULN-APP.md](VULN-APP.md).
+In this demo, XC generates a rich stream of security telemetry — security events, bot signals, API inventory — driven by the traffic that Locust sends through it.
 
-### Summary
+### 2. vuln-bank
 
-#### 1.1 — Deploy vuln-bank (Flask Backend)
+**vuln-bank** ([github.com/Commando-X/vuln-bank](https://github.com/Commando-X/vuln-bank)) is a deliberately vulnerable banking application built by [Commando-X](https://github.com/Commando-X) for security demos and testing.
 
-```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose
-sudo systemctl enable docker && sudo systemctl start docker
-sudo usermod -aG docker $USER && newgrp docker
+It includes:
+- A Flask REST API backend with intentional vulnerabilities (SQLi, IDOR, broken auth, etc.)
+- A PostgreSQL database
+- An AI customer support agent (OpenAI-compatible, configurable via [AI-model-update.md](AI-model-update.md))
+- A React Native mobile frontend: **vuln-bank-mobile** ([github.com/Commando-X/vuln-bank-mobile](https://github.com/Commando-X/vuln-bank-mobile))
 
-git clone https://github.com/Commando-X/vuln-bank.git
-cd vuln-bank
-docker-compose up --build -d
-```
+In this demo, vuln-bank runs on a Linux server as the **origin** behind F5 XC. The mobile app (optional) can be built and installed on an Android device to simulate mobile API traffic through XC.
 
-Verify:
-
-```bash
-curl http://localhost:5000
-```
-
-Open firewall for XC Regional Edge access only:
-
-```bash
-sudo ufw allow from <XC_RE_IP_RANGE> to any port 5000
-sudo ufw reload
-```
-
-> Restrict port 5000 to F5 XC Regional Edge (Asia) IPs only. Do not expose it publicly.
-
-#### 1.2 — Configure the AI Agent (Optional)
-
-The vuln-bank AI customer support agent uses an OpenAI-compatible API. See [AI-model-update.md](AI-model-update.md) for how to configure DeepSeek or OpenRouter.
-
-#### 1.3 — Build and Install vuln-bank-mobile (Optional)
-
-For the mobile app demo, see [VULN-APP.md](VULN-APP.md) for the full build and APK installation walkthrough.
-
-After building, update `src/utils/api.ts` to point `API_BASE` at your F5 XC load balancer domain (not the backend IP directly):
-
-```typescript
-export const API_BASE = 'https://vulnbank.yourdomain.com';
-```
-
-#### 1.4 — Create Demo Users
-
-After the backend is running, create the required demo user accounts via the vuln-bank API or the Postman collection. The demo uses:
+Demo user accounts used by the traffic generator and API testing:
 
 | Username | Password | Role |
 |---|---|---|
@@ -97,177 +76,66 @@ After the backend is running, create the required demo user accounts via the vul
 | `franklin` | `123456` | Standard user |
 | `john` | `123456` | Standard user |
 
+### 3. Locust
+
+**Locust** ([locust.io](https://locust.io)) is an open-source Python-based load testing tool. It simulates realistic user behaviour by executing scripted API flows against a target endpoint.
+
+In this demo, Locust runs on a dedicated server and continuously sends traffic to the F5 XC load balancer endpoint. This generates the security events, bot signals, and API traffic data that populate the XC dashboards.
+
+The traffic script is in [api-locustfile.py](api-locustfile.py), configured to run 50 concurrent simulated users. Full setup instructions are in [traffic-generator.md](traffic-generator.md).
+
 ---
 
-## 2. F5 XC Configuration
+## Requirements
 
-F5 XC is configured via API using the provided Postman collection: **`F5 XC - Vuln-Bank Setup.postman_collection.json`**
+### Backend Server (vuln-bank)
 
-### Prerequisites
+The backend server hosts the vuln-bank Flask API. If you plan to also build the mobile APK on the same server, use the higher specs.
 
-- An active F5 XC tenant
-- An API token: **Console → Administration → Credentials → Add Credentials → API Token**
-
-### Postman Collection Variables
-
-Set these variables in the collection before running any requests:
-
-| Variable | Description | Example |
+| Spec | Minimum | Notes |
 |---|---|---|
-| `xc_tenant` | Your tenant subdomain | `mycompany` |
-| `xc_api_token` | F5 XC API Token | `APIToken abc123...` |
-| `vulnbank_base_url` | Domain for the LB (no `https://`) | `vulnbank.yourdomain.com` |
-| `xc_tenant_fullname` | Auto-populated — do not set manually | — |
+| **CPU** | 2 vCPUs | Single core will cause Gradle to hang at 0% INITIALIZING during mobile build |
+| **RAM** | 8 GB | Less than 4 GB causes Gradle daemon to hang or OOM during mobile APK build |
+| **Storage** | 20 GB free | Android SDK + Gradle cache + build artifacts are large |
+| **OS** | Ubuntu 20.04 / 22.04 LTS | Other distros not tested |
+| **Network** | Stable internet | Gradle downloads ~500MB+ of dependencies on first build |
 
-### Step-by-Step Setup (run in order)
+> If you are only running the Flask backend (no mobile APK build), a **2 vCPU / 4 GB** server is sufficient.
 
-#### Step 1 — Get Tenant Info
+> Port 5000 must be accessible from F5 XC Regional Edge IPs only — do not expose it to the public internet.
 
-Run **"Get Tenant Info (auto-set xc_tenant_fullname)"** — this auto-populates `xc_tenant_fullname`, which is required by all subsequent requests.
+### Traffic Generator Server
 
-#### Step 2 — Create Namespace
+A separate server is recommended for Locust so that its CPU and network usage does not interfere with backend performance metrics.
 
-**POST** `Namespaces → Create Namespace - vuln-bank`
-
-Creates the `vuln-bank` namespace that isolates all demo resources.
-
-#### Step 3 — Create Health Check
-
-**POST** `Health Check → Create Health Check - tcp-monitor`
-
-Creates a TCP health check (`tcp-monitor`) used by the origin pool to monitor backend availability.
-
-#### Step 4 — Create Origin Pool
-
-**POST** `Origin Pool → Create Origin Pool - origin-vuln-bank`
-
-Creates an origin pool pointing to your backend server IP on port 5000, with `tcp-monitor` attached.
-
-> Update the IP address in the request body to match your actual backend server IP.
-
-#### Step 5 — Create App Firewall Policy
-
-**POST** `App Firewall Policy → Create App Firewall - policy-vuln-bank`
-
-Creates a WAF policy in **blocking mode** with AI-enhanced threat detection.
-
-#### Step 6 — Create HTTP Load Balancer
-
-**POST** `Create HTTP LB - lb-vuln-bank`
-
-Creates the HTTPS load balancer that:
-- Terminates TLS with auto-cert
-- Redirects HTTP → HTTPS
-- Attaches the WAF policy (`policy-vuln-bank`)
-- Attaches the origin pool (`origin-vuln-bank`)
-- Enables Bot Defense on the `/login` endpoint
-- Enables API Discovery with API Crawler
-- Enables API Testing
-
-After this request succeeds, your demo app should be accessible at `https://vulnbank.yourdomain.com`.
-
-### Teardown (reverse order)
-
-To tear down, run the corresponding **Delete** requests in reverse order:
-
-1. Delete HTTP LB - lb-vuln-bank
-2. Delete App Firewall - policy-vuln-bank
-3. Delete Origin Pool - origin-vuln-bank
-4. Delete Health Check - tcp-monitor
-5. Delete Namespace - vuln-bank
-
----
-
-## 3. Traffic Generator
-
-The traffic generator uses [Locust](https://locust.io) to simulate realistic user traffic against the F5 XC load balancer endpoint.
-
-Full setup and locustfile details are in [traffic-generator.md](traffic-generator.md).
-
-### 3.1 — Set Up the Traffic Generator Server
-
-Provision a separate Linux server (Ubuntu 20.04/22.04 recommended) for running Locust. A small instance (1–2 vCPU, 2GB RAM) is sufficient.
-
-Install Locust:
-
-```bash
-sudo apt update
-sudo apt install -y python3-pip
-pip3 install locust
-```
-
-Transfer the locustfile to the server:
-
-```bash
-scp api-locustfile.py user@<TRAFFIC_GEN_SERVER_IP>:~/locustfile.py
-```
-
-### 3.2 — Configure Log Rotation (Before Starting Locust)
-
-Set up logrotate first so log rotation is active from the moment Locust starts:
-
-```bash
-sudo nano /etc/logrotate.d/locust
-```
-
-Paste the following (update the path to match your user's home directory):
-
-```
-/home/<your_user>/locust.log {
-    size 100M
-    rotate 3
-    compress
-    missingok
-    notifempty
-    copytruncate
-}
-```
-
-Test the config:
-
-```bash
-sudo logrotate -d /etc/logrotate.d/locust
-```
-
-### 3.3 — Start Traffic Generation
-
-```bash
-nohup locust -f locustfile.py \
-  --host=https://vulnbank.yourdomain.com \
-  --headless --users 50 --spawn-rate 5 --run-time 3d \
-  > locust.log 2>&1 &
-```
-
-### 3.4 — Monitor and Manage
-
-Confirm Locust is running:
-
-```bash
-ps aux | grep locust
-tail -f locust.log
-```
-
-Stop Locust:
-
-```bash
-# Graceful stop
-kill <PID>
-
-# Force stop (if unresponsive)
-kill -9 <PID>
-```
-
----
-
-## Files in This Repo
-
-| File | Description |
+| Spec | Minimum |
 |---|---|
-| [VULN-APP.md](VULN-APP.md) | Full guide: deploy vuln-bank backend + build vuln-bank-mobile APK |
-| [AI-model-update.md](AI-model-update.md) | Configure the AI agent (DeepSeek / OpenRouter) |
-| [traffic-generator.md](traffic-generator.md) | Locust traffic generator setup and log rotation |
-| [api-locustfile.py](api-locustfile.py) | Locust script for simulating API traffic |
-| `F5 XC - Vuln-Bank Setup.postman_collection.json` | Postman collection for all F5 XC API configuration steps |
+| **CPU** | 1 vCPU |
+| **RAM** | 2 GB |
+| **OS** | Ubuntu 20.04 / 22.04 LTS |
+| **Python** | 3.8+ |
+| **Network** | Stable internet, low latency to the XC endpoint |
+
+### Postman
+
+The F5 XC configuration is performed via API using a provided Postman collection. Postman Desktop (any recent version) is required.
+
+**Collection file:** `F5 XC - Vuln-Bank Setup.postman_collection.json`
+
+To import:
+1. Open Postman Desktop
+2. Click **Import** (top left)
+3. Select `F5 XC - Vuln-Bank Setup.postman_collection.json`
+
+Before running any requests, set the following collection variables:
+
+| Variable | Description |
+|---|---|
+| `xc_tenant` | Your F5 XC tenant subdomain (e.g. `mycompany`) |
+| `xc_api_token` | Your F5 XC API token — generate from Console → Administration → Credentials |
+| `vulnbank_base_url` | Domain for the load balancer, without `https://` (e.g. `vulnbank.yourdomain.com`) |
+
+For the full step-by-step XC configuration walkthrough, see [xc-config.md](xc-config.md).
 
 ---
 
@@ -275,5 +143,6 @@ kill -9 <PID>
 
 - [vuln-bank — GitHub](https://github.com/Commando-X/vuln-bank)
 - [vuln-bank-mobile — GitHub](https://github.com/Commando-X/vuln-bank-mobile)
+- [F5 Distributed Cloud Documentation](https://docs.cloud.f5.com/docs-v2/)
 - [F5 Distributed Cloud API Reference](https://docs.cloud.f5.com/docs-v2/api)
 - [Locust Documentation](https://docs.locust.io)

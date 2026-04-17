@@ -120,12 +120,12 @@ A separate server is recommended for Locust so that its CPU and network usage do
 
 The F5 XC configuration is performed via API using a provided Postman collection. Postman Desktop (any recent version) is required.
 
-**Collection file:** `F5 XC - Vuln-Bank Setup.postman_collection.json`
+**Collection file:** [F5 XC - Vuln-Bank Setup.postman_collection.json](F5%20XC%20-%20Vuln-Bank%20Setup.postman_collection.json)
 
 To import:
 1. Open Postman Desktop
 2. Click **Import** (top left)
-3. Select `F5 XC - Vuln-Bank Setup.postman_collection.json`
+3. Select [F5 XC - Vuln-Bank Setup.postman_collection.json](F5%20XC%20-%20Vuln-Bank%20Setup.postman_collection.json)
 
 Before running any requests, set the following collection variables:
 

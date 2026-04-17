@@ -40,6 +40,40 @@ ps aux | grep locust
 tail -f locust.log
 ```
 
+You can kill that process using its **PID** directly:
+
+```bash
+kill 902386
+```
+
+Or if it doesn't respond to a normal kill signal, force it with **SIGKILL**:
+
+```bash
+kill -9 902386
+```
+
+---
+
+**Using `pkill`** (by process name, if you know it):
+```bash
+pkill -9 shaugi
+```
+
+Or match by the exact PID with `kill` (pkill doesn't take PIDs directly — that's what `kill` is for).
+
+---
+
+**Quick reference:**
+
+| Command | What it does |
+|---|---|
+| `kill 902386` | Graceful termination (SIGTERM) |
+| `kill -9 902386` | Force kill (SIGKILL, can't be ignored) |
+| `pkill -9 <name>` | Kill by process name |
+| `kill -15 902386` | Explicit SIGTERM (same as default) |
+
+`kill -9` is the most reliable if the process is hung or unresponsive.
+
 ---
 
 That's it. `logrotate` runs automatically every day via cron, so once the config is in place you don't need to touch it again. With 50 users over 3 days, `100M` per file and 3 rotations gives you up to 300MB max before old logs get deleted.

@@ -4,7 +4,7 @@
 
 This repo is a step-by-step guide to setting up a demo environment for **F5 Distributed Cloud (XC)**. It covers three areas:
 
-1. Deploying the backend demo application (**vuln-bank**) on a Linux server — see [VULN-APP.md](VULN-APP.md)
+1. Deploying the backend demo application (**vuln-bank**) on a Linux server — see [vuln-bank-install.md](vuln-bank-install.md)
 2. Configuring F5 XC security services (WAAP, Bot Defense, API Discovery) via the Postman collection — see [xc-config.md](xc-config.md)
 3. Setting up a traffic generator to produce continuous, realistic traffic through the XC load balancer — see [traffic-generator.md](traffic-generator.md)
 

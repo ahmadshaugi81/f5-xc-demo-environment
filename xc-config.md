@@ -11,7 +11,7 @@ For an overview of the demo environment and its components, see [README.md](READ
 - An active F5 XC tenant
 - An F5 XC API token: **Console → Administration → Credentials → Add Credentials → API Token**
 - Postman Desktop with the collection imported: [F5 XC - Vuln-Bank Setup.postman_collection.json](F5%20XC%20-%20Vuln-Bank%20Setup.postman_collection.json)
-- The vuln-bank backend server must be running and accessible (see [VULN-APP.md](VULN-APP.md))
+- The vuln-bank backend server must be running and accessible (see [vuln-bank-install.md](vuln-bank-install.md))
 - A domain name you control, to be delegated to F5 XC for auto-cert TLS
 
 ---

@@ -20,17 +20,14 @@ For an overview of the demo environment and its components, see [README.md](READ
 
 Set these in Postman before running any requests: **Collection → Variables tab**
 
-| Variable | Description | Example |
-|---|---|---|
-| `xc_tenant` | Your tenant subdomain | `mycompany` |
-| `xc_api_token` | Your F5 XC API token | `sk-abc123...` |
-| `vulnbank_base_url` | Domain for the LB — no `https://` prefix | `vulnbank.yourdomain.com` |
-| `xc_tenant_fullname` | Full internal tenant name — **auto-populated by Step 1, do not set manually** | — |
-
-The `base_url` variable is derived automatically from `xc_tenant`:
-```
-https://{{xc_tenant}}.console.ves.volterra.io
-```
+| Variable | Set by | Description | Example |
+|---|---|---|---|
+| `xc_tenant` | You | Your F5 XC tenant subdomain — the part before `.console.ves.volterra.io` | `mycompany` |
+| `xc_api_token` | You | Your F5 XC API token — generate from Console → Administration → Credentials | `sk-abc123...` |
+| `vulnbank_base_url` | You | Domain for the load balancer — no `https://` prefix | `vulnbank.yourdomain.com` |
+| `origin_pool_ip` | You | Public IP of your backend server running vuln-bank on port 5000 | `54.255.131.161` |
+| `base_url` | Auto (derived) | Full API base URL — built from `xc_tenant`, do not modify | `https://{{xc_tenant}}.console.ves.volterra.io` |
+| `xc_tenant_fullname` | Auto (Step 1) | Full internal tenant name (e.g. `mycompany-abc12345`) — auto-populated by the Get Tenant Info request, do not set manually | — |
 
 ---
 

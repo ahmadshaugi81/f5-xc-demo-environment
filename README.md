@@ -14,7 +14,7 @@ This repo is a step-by-step guide to setting up a demo environment for **F5 Dist
 
 ```
 Android Device / Browser        Locust (Traffic generator)
-        │                         |
+        │                         │
         │  HTTPS                  │  HTTPS
         ▼                         ▼
 ┌─────────────────────────────────────────┐
@@ -149,8 +149,4 @@ For the full step-by-step XC configuration walkthrough, see [xc-config.md](xc-co
 
 ## Quick Links
 
-| Guide | Description |
-|---|---|
-| [Vuln-Bank Installation](vuln-bank-install.md) | Deploy the vuln-bank backend on a Linux server |
-| [F5 XC Configuration](xc-config.md) | Configure WAAP, Bot Defense, and API Discovery via Postman |
-| [Traffic Generator Setup](traffic-generator.md) | Install Locust and run the legitimate and attack traffic scripts |
+[Vuln-Bank Installation](vuln-bank-install.md) · [F5 XC Configuration](xc-config.md) · [Traffic Generator Setup](traffic-generator.md)

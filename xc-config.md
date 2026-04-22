@@ -1,3 +1,7 @@
+[Home Page](README.md) · [Vuln-Bank Installation](vuln-bank-install.md) · [Traffic Generator Setup](traffic-generator.md)
+
+---
+
 # F5 XC Configuration — Step-by-Step Guide
 
 This guide walks through configuring F5 Distributed Cloud (XC) for the vuln-bank demo environment using the provided Postman collection.

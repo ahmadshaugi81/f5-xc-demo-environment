@@ -225,3 +225,9 @@ pkill -f locust
 - [F5 Distributed Cloud — Security Events](https://docs.cloud.f5.com/docs-v2/security-ops/security-events)
 - [F5 Distributed Cloud — API Discovery](https://docs.cloud.f5.com/docs-v2/api-security/api-discovery)
 - [vuln-bank — GitHub](https://github.com/Commando-X/vuln-bank)
+
+---
+
+## Quick Links
+
+[Home Page](README.md) · [Vuln-Bank Installation](vuln-bank-install.md) · [F5 XC Configuration](xc-config.md)

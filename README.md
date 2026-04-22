@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repo is a step-by-step guide to setting up a demo environment for **F5 Distributed Cloud (XC)**. It covers three areas:
+This repo is a step-by-step guide to setting up a demo environment for **F5 Distributed Cloud (XC)**. It covers three areas, which you may follow it accordingly:
 
 1. Deploying the backend demo application (**vuln-bank**) on a Linux server — see [vuln-bank-install.md](vuln-bank-install.md)
 2. Configuring F5 XC security services (WAAP, Bot Defense, API Discovery) via the Postman collection — see [xc-config.md](xc-config.md)
@@ -13,10 +13,10 @@ This repo is a step-by-step guide to setting up a demo environment for **F5 Dist
 ## Components
 
 ```
-Android Device / Browser
-        │
-        │  HTTPS
-        ▼
+Android Device / Browser        Locust (Traffic generator)
+        │                         |
+        │  HTTPS                  │  HTTPS
+        ▼                         ▼
 ┌─────────────────────────────────────────┐
 │         F5 Distributed Cloud (XC)       │
 │  ┌──────────────────────────────────┐   │
@@ -36,8 +36,6 @@ Android Device / Browser
         │  └── PostgreSQL  │
         └──────────────────┘
 
-Traffic Generator Server
-  └── Locust ──────────────────────────▶ XC Load Balancer endpoint
 ```
 
 ### 1. F5 XC WAAP and Bot Defense
@@ -51,8 +49,6 @@ Key capabilities used in this demo:
 | **WAAP (Web App & API Protection)** | WAF that inspects HTTP traffic and blocks OWASP Top 10 attacks (SQLi, XSS, RCE, etc.) in real time |
 | **Bot Defense** | Detects and mitigates automated bot traffic on protected endpoints (e.g. `/login`) using JS telemetry and behavioral analysis |
 | **API Discovery** | Automatically maps all API endpoints observed in traffic, including shadow and unauthenticated endpoints |
-| **AI Enhancements** | Risk-based threat scoring that adjusts blocking behavior based on attack confidence |
-| **DDoS / L7 Protection** | Rate limiting and volumetric attack mitigation at the application layer |
 
 In this demo, XC generates a rich stream of security telemetry — security events, bot signals, API inventory — driven by the traffic that Locust sends through it.
 
@@ -82,7 +78,7 @@ Demo user accounts used by the traffic generator and API testing:
 
 In this demo, Locust runs on a dedicated server and continuously sends traffic to the F5 XC load balancer endpoint. This generates the security events, bot signals, and API traffic data that populate the XC dashboards.
 
-The traffic script is in [api-locustfile.py](api-locustfile.py), configured to run 50 concurrent simulated users. Full setup instructions are in [traffic-generator.md](traffic-generator.md).
+The traffic script is in [locust-legitimate.py](locust-legitimate.py), for simulating legitimate traffic, and in [locust-attack.py](locust-attack.py), for simulating malicious traffic. Full setup instructions are in [traffic-generator.md](traffic-generator.md).
 
 ---
 
@@ -103,6 +99,8 @@ The backend server hosts the vuln-bank Flask API. If you plan to also build the 
 > If you are only running the Flask backend (no mobile APK build), a **2 vCPU / 4 GB** server is sufficient.
 
 > Port 5000 must be accessible from F5 XC Regional Edge IPs only — do not expose it to the public internet.
+
+The demo app can also be connected to an LLM. See [AI-model-update.md](AI-model-update.md) for setup instructions.
 
 ### Traffic Generator Server
 
@@ -146,3 +144,13 @@ For the full step-by-step XC configuration walkthrough, see [xc-config.md](xc-co
 - [F5 Distributed Cloud Documentation](https://docs.cloud.f5.com/docs-v2/)
 - [F5 Distributed Cloud API Reference](https://docs.cloud.f5.com/docs-v2/api)
 - [Locust Documentation](https://docs.locust.io)
+
+---
+
+## Quick Links
+
+| Guide | Description |
+|---|---|
+| [Vuln-Bank Installation](vuln-bank-install.md) | Deploy the vuln-bank backend on a Linux server |
+| [F5 XC Configuration](xc-config.md) | Configure WAAP, Bot Defense, and API Discovery via Postman |
+| [Traffic Generator Setup](traffic-generator.md) | Install Locust and run the legitimate and attack traffic scripts |

@@ -1,3 +1,7 @@
+[Home Page](README.md) · [F5 XC Configuration](xc-config.md) · [Traffic Generator Setup](traffic-generator.md)
+
+---
+
 # Vuln-Bank + Vuln-Bank-Mobile — Custom Setup Guide
 
 > This guide documents the step-by-step setup of [vuln-bank](https://github.com/Commando-X/vuln-bank) and [vuln-bank-mobile](https://github.com/Commando-X/vuln-bank-mobile) on a self-hosted Linux server, including all caveats, errors, and fixes encountered during the process.
@@ -418,3 +422,9 @@ Both original projects are licensed under the **MIT License**:
 - [vuln-bank-mobile LICENSE](https://github.com/Commando-X/vuln-bank-mobile/blob/main/LICENSE)
 
 This setup guide is an independent documentation effort and does not modify or redistribute the original source code. All rights to the original projects remain with their respective authors.
+
+---
+
+## Quick Links
+
+[Home Page](README.md) · [F5 XC Configuration](xc-config.md) · [Traffic Generator Setup](traffic-generator.md)

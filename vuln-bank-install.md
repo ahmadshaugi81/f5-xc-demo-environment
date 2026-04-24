@@ -220,7 +220,7 @@ head -3 src/utils/api.ts
 
 ### Step 6 — Verify AndroidManifest.xml (Optional)
 
-> **Tip:** By following this guide, the application will be exposed in HTTPS service. But if you might need to modify the lab and exposed the apps in HTTP mode, then follow this step.
+> **Tip:** By following this guide, the application will be exposed in HTTPS service. But if you might need to modify the lab and exposed the apps in HTTP mode in the future, then follow this step too.
 
 Confirm `android:usesCleartextTraffic="true"` is present in the `<application>` tag:
 

@@ -37,7 +37,7 @@ Set these in Postman before running any requests: **Collection → Variables tab
 
 ## Step-by-Step Configuration
 
-Run the requests in the order below. Each step depends on the previous one.
+Run the requests in the order below. Each step depends on the previous one. Take time to read each request in the Postman collection — the descriptions, headers, and body payloads explain how the F5 XC API works. Understanding the requests, not just running them, is what makes this demo valuable.
 
 ---
 

@@ -30,8 +30,8 @@ Set these in Postman before running any requests: **Collection → Variables tab
 | `xc_api_token` | You | Your F5 XC API token — generate from Console → Administration → Credentials | `sk-abc123...` |
 | `vulnbank_base_url` | You | Domain for the load balancer — no `https://` prefix | `vulnbank.yourdomain.com` |
 | `origin_pool_ip` | You | Public IP of your backend server running vuln-bank on port 5000 | `1.2.3.4` |
-| `base_url` | Auto (derived) | Full API base URL — built from `xc_tenant`, do not modify | `https://{{xc_tenant}}.console.ves.volterra.io` |
-| `xc_tenant_fullname` | Auto (Step 1) | Full internal tenant name (e.g. `mycompany-abc12345`) — auto-populated by the Get Tenant Info request, do not set manually | — |
+| `base_url` | Auto (derived) | Full API base URL — built from `xc_tenant`, **do not modify** | `https://{{xc_tenant}}.console.ves.volterra.io` |
+| `xc_tenant_fullname` | Auto (Step 1) | Full internal tenant name (e.g. `mycompany-abc12345`) — auto-populated by the Get Tenant Info request, **do not set manually** | — |
 
 ---
 
@@ -113,8 +113,6 @@ Key settings:
 | Port | 5000 |
 | Protocol | HTTP (no TLS to origin) |
 | Health check | `tcp-monitor` (from Step 3) |
-| Load balancing | Round robin |
-| Endpoint selection | Local preferred |
 
 ---
 
@@ -153,7 +151,7 @@ The collection includes **two variants** of this request. Choose the one that ma
 | Request | When to use |
 |---|---|
 | `Create HTTP LB - lb-vuln-bank` | Use this when **Bot Defense is not enabled** on your tenant. Configures WAF, API Discovery, API Testing, and DDoS protection only. |
-| `Create HTTP LB with Bot Defense - lb-vuln-bank` | Use this when **Bot Defense is enabled** on your tenant. Adds Bot Defense on the `/login` endpoint (ASIA region) with JS injection and mobile SDK detection on top of the standard configuration. |
+| `Create HTTP LB with Bot Defense - lb-vuln-bank` | Use this when **Bot Defense is enabled** on your tenant. Adds Bot Defense on the `/login` & `/transfer` endpoints (ASIA region) with JS injection and mobile SDK detection on top of the standard configuration. |
 
 > **Not sure?** Check your tenant's subscription in the F5 XC Console under **Administration → Tenant Settings**. If Bot Defense does not appear as an available service, use the standard variant.
 

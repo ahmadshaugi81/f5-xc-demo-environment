@@ -47,7 +47,7 @@ Key capabilities used in this demo:
 | Capability | Description |
 |---|---|
 | **WAAP (Web App & API Protection)** | WAF that inspects HTTP traffic and blocks OWASP Top 10 attacks (SQLi, XSS, RCE, etc.) in real time |
-| **Bot Defense** | Detects and mitigates automated bot traffic on protected endpoints (e.g. `/login`) using JS telemetry and behavioral analysis |
+| **Bot Defense** _(Optional)_ | Detects and mitigates automated bot traffic on protected endpoints (e.g. `/login`) using JS telemetry and behavioral analysis |
 | **API Discovery** | Automatically maps all API endpoints observed in traffic, including shadow and unauthenticated endpoints |
 
 In this demo, XC generates a rich stream of security telemetry — security events, bot signals, API inventory — driven by the traffic that Locust sends through it.

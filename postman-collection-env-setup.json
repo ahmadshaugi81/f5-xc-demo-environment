@@ -753,7 +753,7 @@
   "variable": [
     {
       "key": "xc_tenant",
-      "value": "mandiritunas",
+      "value": "",
       "description": "Your F5 XC tenant name (subdomain). E.g. if your console URL is mycompany.console.ves.volterra.io, enter: mycompany"
     },
     {
@@ -778,7 +778,7 @@
     },
     {
       "key": "origin_pool_ip",
-      "value": "54.255.131.161"
+      "value": ""
     }
   ]
 }

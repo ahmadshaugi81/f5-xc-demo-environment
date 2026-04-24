@@ -103,17 +103,7 @@ Key settings:
 
 Creates an origin pool named `origin-vuln-bank` that points to your backend server.
 
-> **Before running:** Update the `ip` field in the request body to your actual backend server's public IP address.
-
-```json
-"origin_servers": [
-  {
-    "public_ip": {
-      "ip": "YOUR_BACKEND_SERVER_IP"
-    }
-  }
-]
-```
+The backend IP is read from the `{{origin_pool_ip}}` collection variable — no manual editing of the request body is needed. Ensure this variable is set in the **Collection → Variables tab** before running.
 
 Key settings:
 
@@ -150,7 +140,7 @@ Key settings:
 
 ### Step 6 — Create HTTP Load Balancer
 
-**Request:** `Create HTTP LB - lb-vuln-bank`
+**Folder:** `HTTP LB`
 
 **Method:** `POST /api/config/namespaces/vuln-bank/http_loadbalancers`
 
@@ -158,7 +148,16 @@ Creates the HTTPS load balancer that serves as the public entry point for the de
 
 > **Before running:** Confirm `{{vulnbank_base_url}}` is set correctly in the collection variables (e.g. `vulnbank.yourdomain.com`).
 
-#### What this load balancer configures
+The collection includes **two variants** of this request. Choose the one that matches your tenant's enabled features:
+
+| Request | When to use |
+|---|---|
+| `Create HTTP LB - lb-vuln-bank` | Use this when **Bot Defense is not enabled** on your tenant. Configures WAF, API Discovery, API Testing, and DDoS protection only. |
+| `Create HTTP LB with Bot Defense - lb-vuln-bank` | Use this when **Bot Defense is enabled** on your tenant. Adds Bot Defense on the `/login` endpoint (ASIA region) with JS injection and mobile SDK detection on top of the standard configuration. |
+
+> **Not sure?** Check your tenant's subscription in the F5 XC Console under **Administration → Tenant Settings**. If Bot Defense does not appear as an available service, use the standard variant.
+
+#### What both variants configure
 
 **TLS / HTTPS**
 - Auto-cert TLS on port 443 (F5 XC provisions and renews the certificate automatically)
@@ -168,14 +167,6 @@ Creates the HTTPS load balancer that serves as the public entry point for the de
 
 **WAF**
 - Attaches `policy-vuln-bank` (blocking mode with AI enhancements)
-
-**Bot Defense**
-- Regional endpoint: Asia
-- Protected endpoint: `POST /login` — classified as an authentication login flow
-- JavaScript injection: inserted on all pages (after `<head>`) for browser telemetry
-- JS download path: `/common.js`
-- JS mode: async with caching (minimal performance impact)
-- Mobile SDK identifier: detects `okhttp/4.12.0` User-Agent as the mobile app
 
 **API Discovery**
 - Learns API endpoints from observed traffic
@@ -195,7 +186,47 @@ Creates the HTTPS load balancer that serves as the public entry point for the de
 - Service policies: inherited from namespace
 - Malicious user detection: disabled (for demo — keeps all traffic visible in dashboards)
 
+#### Additional settings in the Bot Defense variant only
+
+**Bot Defense**
+- Regional endpoint: Asia
+- Protected endpoint: `POST /login` — classified as an authentication login flow
+- JavaScript injection: inserted on all pages (after `<head>`) for browser telemetry
+- JS download path: `/common.js`
+- JS mode: async with caching (minimal performance impact)
+- Mobile SDK identifier: detects `okhttp/4.12.0` User-Agent as the mobile app
+
 After this request succeeds, the demo app will be accessible at `https://{{vulnbank_base_url}}`. DNS delegation to F5 XC must be in place for TLS auto-cert provisioning to complete.
+
+---
+
+### Step 7 — Create Demo Users
+
+**Folder:** `Vuln-Bank - Users Creation`
+
+**Method:** `POST https://{{vulnbank_base_url}}/register`
+
+Creates the standard demo user accounts on the vuln-bank backend. These accounts are used by the traffic generator scripts (`locust-legitimate.py`, `locust-attack.py`) and by the XC API Testing feature configured in Step 6.
+
+> **Run after Step 6.** The load balancer must be up and DNS must be resolving before these requests can reach the backend.
+
+Run both requests in this folder:
+
+| Request | Creates |
+|---|---|
+| `Register User - john` | username: `john` / password: `123456` |
+| `Register User - franklin` | username: `franklin` / password: `123456` |
+
+```json
+{
+  "username": "john",
+  "password": "123456"
+}
+```
+
+> **Note:** The `admin` account is seeded automatically when vuln-bank starts — you do not need to create it manually.
+
+> **Vulnerability note:** The `/register` endpoint is intentionally vulnerable to BOLA (Broken Object Level Authorization). This is by design — it is one of the attack surfaces that the traffic generator and XC API Testing are configured to probe.
 
 ---
 
@@ -213,6 +244,8 @@ To remove all XC resources, run the **Delete** requests in reverse order:
 
 > Deleting the namespace last ensures no dependent objects remain. Deleting a namespace with active references will fail.
 
+> **Note on demo users:** The `john` and `franklin` accounts created in Step 7 live in the **vuln-bank PostgreSQL database**, not in F5 XC. They are not removed by the teardown steps above. To fully reset the application, clear the database on the backend server directly (see [vuln-bank-install.md](vuln-bank-install.md)).
+
 ---
 
 ## Verification
@@ -223,13 +256,15 @@ After completing all steps, verify the setup end-to-end:
 
 2. **Access the app** — open `https://{{vulnbank_base_url}}` in a browser. You should see the vuln-bank login page served over HTTPS with a valid certificate.
 
-3. **Trigger WAF** — send a basic SQLi attempt and confirm it is blocked:
+3. **Verify demo users** — log in with `john` / `123456` and `franklin` / `123456` to confirm both accounts were created successfully.
+
+4. **Trigger WAF** — send a basic SQLi attempt and confirm it is blocked:
    ```bash
    curl -k "https://vulnbank.yourdomain.com/login?user=admin'--"
    ```
    Expected: `403 Forbidden` or a block page response.
 
-4. **Check Security Events** — in the XC Console, navigate to `vuln-bank` namespace → Security → Security Events. The blocked request should appear within 1–2 minutes.
+5. **Check Security Events** — in the XC Console, navigate to `vuln-bank` namespace → Security → Security Events. The blocked request should appear within 1–2 minutes.
 
 ---
 

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "1e09bae6-e841-42de-a6b0-aba68d0a3bdd",
     "name": "F5 XC - Vuln-Bank Setup",
-    "description": "Postman collection for managing Namespaces in F5 Distributed Cloud (XC).\n\nAPI Reference: https://docs.cloud.f5.com/docs-v2/api/namespace\n\n## Setup\nSet the following collection variables before use:\n- `xc_tenant` — your tenant name (e.g. `mycompany`)\n- `xc_api_token` — your F5 XC API token (from Console > Administration > Credentials)",
+    "description": "Automates the full F5 Distributed Cloud (XC) setup for the **vuln-bank** demo environment via API — no manual console steps required.\n\n## What This Collection Deploys\n\n| Step | Resource | Name |\n|------|----------|------|\n| 1 | Namespace | `vuln-bank` |\n| 2 | Health Check | `tcp-monitor` |\n| 3 | Origin Pool | `origin-vuln-bank` |\n| 4 | App Firewall Policy | `policy-vuln-bank` |\n| 5 | HTTP Load Balancer | `lb-vuln-bank` |\n\n## Setup — Collection Variables\n\nSet these variables before running any request:\n\n| Variable | Description | Example |\n|----------|-------------|---------|\n| `{{xc_tenant}}` | Your F5 XC tenant short name | `mycompany` |\n| `{{xc_api_token}}` | API token from **Console → Administration → Credentials** | — |\n| `{{vulnbank_base_url}}` | Domain for the vuln-bank app (no `https://`) | `vulnbank.example.com` |\n| `{{origin_pool_ip}}` | IP address of the vuln-bank backend server | `54.255.131.161` |\n\n> `{{xc_tenant_fullname}}` and `{{base_url}}` are set **automatically** by the Get Tenant Info request — do not set these manually.\n\n## Execution Order\n\nRun folders **top to bottom** in the order listed. Within each folder, run **Create** before other requests.\n\n## References\n\n- [F5 XC API Docs](https://docs.cloud.f5.com/docs-v2/api)\n- [Vuln-Bank Source](https://github.com/Commando-X/vuln-bank)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "8077676"
   },
@@ -54,7 +54,7 @@
                 "namespaces"
               ]
             },
-            "description": "Gets tenant information by listing namespaces. Every F5 XC API response includes metadata.tenant with the full tenant name (e.g. mandiritunas-abc12345).\\n\\nThe Test script automatically extracts the tenant name from the first namespace in the response and stores it in the collection variable 'xc_tenant_fullname'.\\n\\nRun this request FIRST before using Origin Pool or any other request that references {{xc_tenant_fullname}}.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/namespace\\nOperation: ves.io.schema.namespace.API.List"
+            "description": "Lists namespaces to resolve the full tenant name and auto-populate `{{xc_tenant_fullname}}` and `{{base_url}}` via the built-in Test script.\n\n> **Run this first** — every subsequent request that references `{{xc_tenant_fullname}}` depends on this value.\n\n## How It Works\n\nEvery F5 XC API response includes `metadata.tenant` with the full tenant identifier (e.g. `mycompany-abc12345`). The Test script extracts this from the first namespace in the response and stores it as a collection variable automatically.\n\n## Variables Set by This Request\n\n| Variable | Description | Example |\n|----------|-------------|---------|\n| `{{xc_tenant_fullname}}` | Full tenant name extracted from response | `mycompany-abc12345` |\n| `{{base_url}}` | Constructed base URL for all subsequent API calls | `https://mycompany.console.ves.volterra.io` |\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.namespace.API.List` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/web/namespaces` |\n| **Docs** | [F5 XC Namespace API](https://docs.cloud.f5.com/docs-v2/api/namespace) |"
           },
           "response": []
         }
@@ -93,7 +93,7 @@
                 "namespaces"
               ]
             },
-            "description": "Creates a new namespace named 'vuln-bank'.\n\nAPI Reference: https://docs.cloud.f5.com/docs-v2/api/namespace\nOperation: ves.io.schema.namespace.API.Create\n\nEndpoint: POST /api/web/namespaces\n\nRequired fields:\n- metadata.name: The namespace name (lowercase, alphanumeric, hyphens allowed)"
+            "description": "Creates the `vuln-bank` namespace in your F5 XC tenant. All demo resources (origin pool, firewall policy, load balancer) are deployed into this namespace.\n\n---\n\n## Prerequisites\n\n| Step | Request |\n|------|---------|\n| 1 | Get Tenant Info |\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.namespace.API.Create` |\n| **Method** | `POST` |\n| **Endpoint** | `/api/web/namespaces` |\n| **Docs** | [F5 XC Namespace API](https://docs.cloud.f5.com/docs-v2/api/namespace) |"
           },
           "response": []
         },
@@ -113,7 +113,7 @@
                 "namespaces"
               ]
             },
-            "description": "Lists all namespaces in the tenant.\n\nAPI Reference: https://docs.cloud.f5.com/docs-v2/api/namespace\nOperation: ves.io.schema.namespace.API.List"
+            "description": "Lists all namespaces in the tenant. Useful for verifying that `vuln-bank` was created successfully.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.namespace.API.List` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/web/namespaces` |\n| **Docs** | [F5 XC Namespace API](https://docs.cloud.f5.com/docs-v2/api/namespace) |"
           },
           "response": []
         },
@@ -134,7 +134,7 @@
                 "vuln-bank"
               ]
             },
-            "description": "Gets details of a specific namespace.\n\nAPI Reference: https://docs.cloud.f5.com/docs-v2/api/namespace\nOperation: ves.io.schema.namespace.API.Get\n\nReplace 'vuln-bank' in the URL with the target namespace name."
+            "description": "Gets details of a specific namespace. Replace `vuln-bank` in the URL with the target namespace name if needed.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.namespace.API.Get` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/web/namespaces/{name}` |\n| **Docs** | [F5 XC Namespace API](https://docs.cloud.f5.com/docs-v2/api/namespace) |"
           },
           "response": []
         },
@@ -155,7 +155,7 @@
                 "vuln-bank"
               ]
             },
-            "description": "Deletes a namespace. WARNING: This is irreversible.\n\nAPI Reference: https://docs.cloud.f5.com/docs-v2/api/namespace\nOperation: ves.io.schema.namespace.API.Delete\n\nReplace 'vuln-bank' in the URL with the target namespace name."
+            "description": "Deletes a namespace and all resources within it. Replace `vuln-bank` in the URL with the target namespace name if needed.\n\n> ⚠️ **Warning:** This action is **irreversible**. All resources inside the namespace (origin pools, load balancers, firewall policies) will be permanently deleted.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.namespace.API.Delete` |\n| **Method** | `DELETE` |\n| **Endpoint** | `/api/web/namespaces/{name}` |\n| **Docs** | [F5 XC Namespace API](https://docs.cloud.f5.com/docs-v2/api/namespace) |"
           },
           "response": []
         }
@@ -197,7 +197,7 @@
                 "healthchecks"
               ]
             },
-            "description": "Creates a TCP health check named 'tcp-monitor' in namespace vuln-bank.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/healthcheck\\nOperation: ves.io.schema.healthcheck.API.Create\\nEndpoint: POST /api/config/namespaces/{namespace}/healthchecks"
+            "description": "Creates a TCP health check named `tcp-monitor` in the `vuln-bank` namespace. Used by the origin pool to verify backend availability.\n\n---\n\n## Prerequisites\n\n| Step | Request |\n|------|---------|\n| 1 | Get Tenant Info |\n| 2 | Create Namespace - vuln-bank |\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.healthcheck.API.Create` |\n| **Method** | `POST` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/healthchecks` |\n| **Docs** | [F5 XC Health Check API](https://docs.cloud.f5.com/docs-v2/api/healthcheck) |"
           },
           "response": []
         },
@@ -219,7 +219,7 @@
                 "healthchecks"
               ]
             },
-            "description": "Lists all health checks in namespace vuln-bank.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/healthcheck\\nOperation: ves.io.schema.healthcheck.API.List"
+            "description": "Lists all health checks in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.healthcheck.API.List` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/healthchecks` |\n| **Docs** | [F5 XC Health Check API](https://docs.cloud.f5.com/docs-v2/api/healthcheck) |"
           },
           "response": []
         },
@@ -242,7 +242,7 @@
                 "tcp-monitor"
               ]
             },
-            "description": "Gets details of the tcp-monitor health check.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/healthcheck\\nOperation: ves.io.schema.healthcheck.API.Get"
+            "description": "Gets details of the `tcp-monitor` health check in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.healthcheck.API.Get` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/healthchecks/{name}` |\n| **Docs** | [F5 XC Health Check API](https://docs.cloud.f5.com/docs-v2/api/healthcheck) |"
           },
           "response": []
         },
@@ -265,7 +265,7 @@
                 "tcp-monitor"
               ]
             },
-            "description": "Deletes the tcp-monitor health check. WARNING: Ensure no origin pools are referencing this first.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/healthcheck\\nOperation: ves.io.schema.healthcheck.API.Delete"
+            "description": "Deletes the `tcp-monitor` health check from the `vuln-bank` namespace.\n\n> ⚠️ **Warning:** Ensure no origin pools are referencing this health check before deleting.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.healthcheck.API.Delete` |\n| **Method** | `DELETE` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/healthchecks/{name}` |\n| **Docs** | [F5 XC Health Check API](https://docs.cloud.f5.com/docs-v2/api/healthcheck) |"
           },
           "response": []
         }
@@ -306,7 +306,7 @@
                 "origin_pools"
               ]
             },
-            "description": "Creates origin pool 'origin-vuln-bank' in namespace vuln-bank.\\nBackend: {{origin_pool_ip}}:5000, health check: tcp-monitor.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/origin_pool\\nOperation: ves.io.schema.views.origin_pool.API.Create\\n\\nNote: Update IP in origin_servers if your backend address changes."
+            "description": "Creates origin pool `origin-vuln-bank` in the `vuln-bank` namespace, pointing to the vuln-bank Flask backend.\n\n- **Backend:** `{{origin_pool_ip}}:5000`\n- **Health Check:** `tcp-monitor`\n- **Protocol:** TCP\n\n---\n\n## Prerequisites\n\n| Step | Request |\n|------|---------|\n| 1 | Get Tenant Info |\n| 2 | Create Namespace - vuln-bank |\n| 3 | Create Health Check - tcp-monitor |\n\n---\n\n## Collection Variables\n\n| Variable | Description | Example |\n|----------|-------------|---------|\n| `{{origin_pool_ip}}` | IP address of the vuln-bank backend server | `54.255.131.161` |\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.origin_pool.API.Create` |\n| **Method** | `POST` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/origin_pools` |\n| **Docs** | [F5 XC Origin Pool API](https://docs.cloud.f5.com/docs-v2/api/origin_pool) |"
           },
           "response": []
         },
@@ -328,7 +328,7 @@
                 "origin_pools"
               ]
             },
-            "description": "Lists all origin pools in namespace vuln-bank.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/origin_pool\\nOperation: ves.io.schema.views.origin_pool.API.List"
+            "description": "Lists all origin pools in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.origin_pool.API.List` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/origin_pools` |\n| **Docs** | [F5 XC Origin Pool API](https://docs.cloud.f5.com/docs-v2/api/origin_pool) |"
           },
           "response": []
         },
@@ -351,7 +351,7 @@
                 "origin-vuln-bank"
               ]
             },
-            "description": "Gets details of the origin-vuln-bank origin pool.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/origin_pool\\nOperation: ves.io.schema.views.origin_pool.API.Get"
+            "description": "Gets details of the `origin-vuln-bank` origin pool in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.origin_pool.API.Get` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/origin_pools/{name}` |\n| **Docs** | [F5 XC Origin Pool API](https://docs.cloud.f5.com/docs-v2/api/origin_pool) |"
           },
           "response": []
         },
@@ -374,7 +374,7 @@
                 "origin-vuln-bank"
               ]
             },
-            "description": "Deletes the origin-vuln-bank origin pool. WARNING: Ensure no load balancers reference this first.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/origin_pool\\nOperation: ves.io.schema.views.origin_pool.API.Delete"
+            "description": "Deletes the `origin-vuln-bank` origin pool from the `vuln-bank` namespace.\n\n> ⚠️ **Warning:** Ensure no load balancers are referencing this origin pool before deleting.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.origin_pool.API.Delete` |\n| **Method** | `DELETE` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/origin_pools/{name}` |\n| **Docs** | [F5 XC Origin Pool API](https://docs.cloud.f5.com/docs-v2/api/origin_pool) |"
           },
           "response": []
         }
@@ -415,7 +415,7 @@
                 "app_firewalls"
               ]
             },
-            "description": "Creates App Firewall policy 'policy-vuln-bank' in namespace vuln-bank.\\nBlocking mode with AI enhancements (risk-based mitigation).\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/app-firewall\\nOperation: ves.io.schema.views.app_firewall.API.Create\\nEndpoint: POST /api/config/namespaces/{namespace}/app_firewalls"
+            "description": "Creates App Firewall policy `policy-vuln-bank` in the `vuln-bank` namespace.\n\n- **Mode:** Blocking\n- **AI Enhancements:** Enabled — high-risk requests are mitigated automatically\n- **Bot Setting:** Default\n- **Response Codes:** All allowed\n\n---\n\n## Prerequisites\n\n| Step | Request |\n|------|---------|\n| 1 | Get Tenant Info |\n| 2 | Create Namespace - vuln-bank |\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.app_firewall.API.Create` |\n| **Method** | `POST` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/app_firewalls` |\n| **Docs** | [F5 XC App Firewall API](https://docs.cloud.f5.com/docs-v2/api/app-firewall) |"
           },
           "response": []
         },
@@ -437,7 +437,7 @@
                 "app_firewalls"
               ]
             },
-            "description": "Lists all app firewall policies in namespace vuln-bank.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/app-firewall\\nOperation: ves.io.schema.views.app_firewall.API.List"
+            "description": "Lists all app firewall policies in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.app_firewall.API.List` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/app_firewalls` |\n| **Docs** | [F5 XC App Firewall API](https://docs.cloud.f5.com/docs-v2/api/app-firewall) |"
           },
           "response": []
         },
@@ -460,7 +460,7 @@
                 "policy-vuln-bank"
               ]
             },
-            "description": "Gets details of the policy-vuln-bank app firewall policy.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/app-firewall\\nOperation: ves.io.schema.views.app_firewall.API.Get"
+            "description": "Gets details of the `policy-vuln-bank` app firewall policy in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.app_firewall.API.Get` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/app_firewalls/{name}` |\n| **Docs** | [F5 XC App Firewall API](https://docs.cloud.f5.com/docs-v2/api/app-firewall) |"
           },
           "response": []
         },
@@ -483,115 +483,227 @@
                 "policy-vuln-bank"
               ]
             },
-            "description": "Deletes the policy-vuln-bank app firewall policy. WARNING: Ensure no load balancers reference this first.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/app-firewall\\nOperation: ves.io.schema.views.app_firewall.API.Delete"
+            "description": "Deletes the `policy-vuln-bank` app firewall policy from the `vuln-bank` namespace.\n\n> ⚠️ **Warning:** Ensure no load balancers are referencing this policy before deleting.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.app_firewall.API.Delete` |\n| **Method** | `DELETE` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/app_firewalls/{name}` |\n| **Docs** | [F5 XC App Firewall API](https://docs.cloud.f5.com/docs-v2/api/app-firewall) |"
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Create HTTP LB - lb-vuln-bank",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"metadata\": {\n        \"name\": \"lb-vuln-bank\",\n        \"namespace\": \"vuln-bank\",\n        \"labels\": {\n            \"ves.io/app_type\": \"ves-io-vuln-bank-lb-vuln-bank\"\n        },\n        \"annotations\": {},\n        \"description\": \"https://github.com/Commando-X/vuln-bank\",\n        \"disable\": false\n    },\n    \"spec\": {\n        \"domains\": [\n            \"{{vulnbank_base_url}}\"\n        ],\n        \"https_auto_cert\": {\n            \"http_redirect\": true,\n            \"add_hsts\": true,\n            \"port\": 443,\n            \"tls_config\": {\n                \"default_security\": {}\n            },\n            \"no_mtls\": {},\n            \"default_header\": {},\n            \"enable_path_normalize\": {},\n            \"non_default_loadbalancer\": {},\n            \"header_transformation_type\": {\n                \"legacy_header_transformation\": {}\n            },\n            \"connection_idle_timeout\": 120000,\n            \"http_protocol_options\": {\n                \"http_protocol_enable_v1_v2\": {}\n            },\n            \"coalescing_options\": {\n                \"default_coalescing\": {}\n            }\n        },\n        \"downstream_tls_certificate_expiration_timestamps\": [\n            {}\n        ],\n        \"advertise_on_public_default_vip\": {},\n        \"default_route_pools\": [\n            {\n                \"pool\": {\n                    \"tenant\": \"{{xc_tenant_fullname}}\",\n                    \"namespace\": \"vuln-bank\",\n                    \"name\": \"origin-vuln-bank\",\n                    \"kind\": \"origin_pool\"\n                },\n                \"weight\": 1,\n                \"priority\": 1,\n                \"endpoint_subsets\": {}\n            }\n        ],\n        \"routes\": [],\n        \"disable_caching\": {},\n        \"app_firewall\": {\n            \"tenant\": \"{{xc_tenant_fullname}}\",\n            \"namespace\": \"vuln-bank\",\n            \"name\": \"policy-vuln-bank\",\n            \"kind\": \"app_firewall\"\n        },\n        \"add_location\": true,\n        \"no_challenge\": {},\n        \"user_id_client_ip\": {},\n        \"disable_rate_limit\": {},\n        \"waf_exclusion_rules\": [],\n        \"waf_exclusion\": {\n            \"waf_exclusion_inline_rules\": {\n                \"rules\": []\n            }\n        },\n        \"data_guard_rules\": [],\n        \"blocked_clients\": [],\n        \"trusted_clients\": [],\n        \"ddos_mitigation_rules\": [],\n        \"l7_ddos_protection\": {\n            \"mitigation_block\": {},\n            \"default_rps_threshold\": {},\n            \"clientside_action_none\": {},\n            \"ddos_policy_none\": {}\n        },\n        \"service_policies_from_namespace\": {},\n        \"round_robin\": {},\n        \"enable_trust_client_ip_headers\": {\n            \"client_ip_headers\": [\n                \"x-forwarded-for\"\n            ]\n        },\n        \"disable_malicious_user_detection\": {},\n        \"enable_api_discovery\": {\n            \"disable_learn_from_redirect_traffic\": {},\n            \"discovered_api_settings\": {\n                \"purge_duration_for_inactive_discovered_apis\": 7\n            },\n            \"api_crawler\": {\n                \"api_crawler_config\": {\n                    \"domains\": [\n                        {\n                            \"domain\": \"{{vulnbank_base_url}}\",\n                            \"simple_login\": {\n                                \"user\": \"franklin\",\n                                \"password\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///MTIzNDU2\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            \"default_api_auth_discovery\": {}\n        },\n        \"bot_defense\": {\n            \"regional_endpoint\": \"ASIA\",\n            \"policy\": {\n                \"protected_app_endpoints\": [\n                    {\n                        \"metadata\": {\n                            \"name\": \"vulnbank-login\",\n                            \"disable\": false\n                        },\n                        \"http_methods\": [\n                            \"METHOD_POST\"\n                        ],\n                        \"flow_label\": {\n                            \"authentication\": {\n                                \"login\": {\n                                    \"disable_transaction_result\": {}\n                                }\n                            }\n                        },\n                        \"protocol\": \"HTTPS\",\n                        \"domain\": {\n                            \"exact_value\": \"{{vulnbank_base_url}}\"\n                        },\n                        \"path\": {\n                            \"path\": \"/login\"\n                        },\n                        \"query_params\": [],\n                        \"headers\": [],\n                        \"web_mobile\": {\n                            \"header\": {\n                                \"item\": {\n                                    \"exact_values\": [],\n                                    \"regex_values\": [],\n                                    \"transformers\": []\n                                }\n                            },\n                            \"headers\": [],\n                            \"mobile_identifier\": \"HEADERS\"\n                        },\n                        \"mitigation\": {\n                            \"flag\": {\n                                \"no_headers\": {}\n                            }\n                        },\n                        \"mitigate_good_bots\": {}\n                    }\n                ],\n                \"js_insert_all_pages\": {\n                    \"javascript_location\": \"AFTER_HEAD\"\n                },\n                \"js_download_path\": \"/common.js\",\n                \"javascript_mode\": \"ASYNC_JS_CACHING\",\n                \"mobile_sdk_config\": {\n                    \"reload_header_name\": \"a877f745790\",\n                    \"mobile_identifier\": {\n                        \"headers\": [\n                            {\n                                \"name\": \"user-agent\",\n                                \"item\": {\n                                    \"exact_values\": [\n                                        \"okhttp/4.12.0\"\n                                    ],\n                                    \"regex_values\": [],\n                                    \"transformers\": []\n                                }\n                            }\n                        ]\n                    }\n                }\n            },\n            \"timeout\": 1000,\n            \"enable_cors_support\": {}\n        },\n        \"default_sensitive_data_policy\": {},\n        \"api_testing\": {\n            \"domains\": [\n                {\n                    \"domain\": \"{{vulnbank_base_url}}\",\n                    \"allow_destructive_methods\": false,\n                    \"credentials\": [\n                        {\n                            \"credential_name\": \"admin\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImFkbWluIiwicGFzc3dvcmQiOiJhZG1pbjEyMyJ9\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"admin\": {}\n                        },\n                        {\n                            \"credential_name\": \"franklin\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImZyYW5rbGluIiwicGFzc3dvcmQiOiIxMjM0NTYifQ==\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"standard\": {}\n                        },\n                        {\n                            \"credential_name\": \"john\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImpvaG4iLCJwYXNzd29yZCI6IjEyMzQ1NiJ9\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"standard\": {}\n                        }\n                    ]\n                }\n            ],\n            \"every_day\": {},\n            \"custom_header_value\": \"x-f5-api-testing-identifier\"\n        },\n        \"disable_api_definition\": {},\n        \"disable_ip_reputation\": {},\n        \"disable_client_side_defense\": {},\n        \"graphql_rules\": [],\n        \"protected_cookies\": [],\n        \"system_default_timeouts\": {},\n        \"disable_threat_mesh\": {},\n        \"disable_malware_protection\": {}\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+      "name": "HTTP LB",
+      "item": [
+        {
+          "name": "Create HTTP LB - lb-vuln-bank",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"metadata\": {\n        \"name\": \"lb-vuln-bank\",\n        \"namespace\": \"vuln-bank\",\n        \"labels\": {\n            \"ves.io/app_type\": \"ves-io-vuln-bank-lb-vuln-bank\"\n        },\n        \"annotations\": {},\n        \"description\": \"https://github.com/Commando-X/vuln-bank\",\n        \"disable\": false\n    },\n    \"spec\": {\n        \"domains\": [\n            \"{{vulnbank_base_url}}\"\n        ],\n        \"https_auto_cert\": {\n            \"http_redirect\": true,\n            \"add_hsts\": true,\n            \"port\": 443,\n            \"tls_config\": {\n                \"default_security\": {}\n            },\n            \"no_mtls\": {},\n            \"default_header\": {},\n            \"enable_path_normalize\": {},\n            \"non_default_loadbalancer\": {},\n            \"header_transformation_type\": {\n                \"legacy_header_transformation\": {}\n            },\n            \"connection_idle_timeout\": 120000,\n            \"http_protocol_options\": {\n                \"http_protocol_enable_v1_v2\": {}\n            },\n            \"coalescing_options\": {\n                \"default_coalescing\": {}\n            }\n        },\n        \"downstream_tls_certificate_expiration_timestamps\": [\n            {}\n        ],\n        \"advertise_on_public_default_vip\": {},\n        \"default_route_pools\": [\n            {\n                \"pool\": {\n                    \"tenant\": \"{{xc_tenant_fullname}}\",\n                    \"namespace\": \"vuln-bank\",\n                    \"name\": \"origin-vuln-bank\",\n                    \"kind\": \"origin_pool\"\n                },\n                \"weight\": 1,\n                \"priority\": 1,\n                \"endpoint_subsets\": {}\n            }\n        ],\n        \"routes\": [],\n        \"disable_caching\": {},\n        \"app_firewall\": {\n            \"tenant\": \"{{xc_tenant_fullname}}\",\n            \"namespace\": \"vuln-bank\",\n            \"name\": \"policy-vuln-bank\",\n            \"kind\": \"app_firewall\"\n        },\n        \"add_location\": true,\n        \"no_challenge\": {},\n        \"user_id_client_ip\": {},\n        \"disable_rate_limit\": {},\n        \"waf_exclusion_rules\": [],\n        \"waf_exclusion\": {\n            \"waf_exclusion_inline_rules\": {\n                \"rules\": []\n            }\n        },\n        \"data_guard_rules\": [],\n        \"blocked_clients\": [],\n        \"trusted_clients\": [],\n        \"ddos_mitigation_rules\": [],\n        \"l7_ddos_protection\": {\n            \"mitigation_block\": {},\n            \"default_rps_threshold\": {},\n            \"clientside_action_none\": {},\n            \"ddos_policy_none\": {}\n        },\n        \"service_policies_from_namespace\": {},\n        \"round_robin\": {},\n        \"enable_trust_client_ip_headers\": {\n            \"client_ip_headers\": [\n                \"x-forwarded-for\"\n            ]\n        },\n        \"disable_malicious_user_detection\": {},\n        \"enable_api_discovery\": {\n            \"disable_learn_from_redirect_traffic\": {},\n            \"discovered_api_settings\": {\n                \"purge_duration_for_inactive_discovered_apis\": 7\n            },\n            \"api_crawler\": {\n                \"api_crawler_config\": {\n                    \"domains\": [\n                        {\n                            \"domain\": \"{{vulnbank_base_url}}\",\n                            \"simple_login\": {\n                                \"user\": \"franklin\",\n                                \"password\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///MTIzNDU2\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            \"default_api_auth_discovery\": {}\n        },\n        \"no_bot_defense\": {},\n        \"default_sensitive_data_policy\": {},\n        \"api_testing\": {\n            \"domains\": [\n                {\n                    \"domain\": \"{{vulnbank_base_url}}\",\n                    \"allow_destructive_methods\": false,\n                    \"credentials\": [\n                        {\n                            \"credential_name\": \"admin\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImFkbWluIiwicGFzc3dvcmQiOiJhZG1pbjEyMyJ9\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"admin\": {}\n                        },\n                        {\n                            \"credential_name\": \"franklin\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImZyYW5rbGluIiwicGFzc3dvcmQiOiIxMjM0NTYifQ==\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"standard\": {}\n                        },\n                        {\n                            \"credential_name\": \"john\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImpvaG4iLCJwYXNzd29yZCI6IjEyMzQ1NiJ9\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"standard\": {}\n                        }\n                    ]\n                }\n            ],\n            \"every_day\": {},\n            \"custom_header_value\": \"x-f5-api-testing-identifier\"\n        },\n        \"disable_api_definition\": {},\n        \"disable_ip_reputation\": {},\n        \"disable_client_side_defense\": {},\n        \"graphql_rules\": [],\n        \"protected_cookies\": [],\n        \"system_default_timeouts\": {},\n        \"disable_threat_mesh\": {},\n        \"disable_malware_protection\": {}\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "config",
+                "namespaces",
+                "vuln-bank",
+                "http_loadbalancers"
+              ]
+            },
+            "description": "Creates an HTTPS Load Balancer `lb-vuln-bank` in the `vuln-bank` namespace with the following features enabled:\n- **WAF** — App Firewall policy `policy-vuln-bank` (blocking mode)\n- **Bot Defense** — Protected endpoints: `/login` (flag) and `/transfer` (append headers)\n- **API Discovery** — API Crawler + Code Scan integration\n- **API Testing** — Daily, with `admin`, `franklin`, and `john` credentials\n- **Auto TLS** — Let's Encrypt certificate with HTTP→HTTPS redirect\n\n---\n\n## Prerequisites\n\nRun the following requests **in order** before executing this one:\n\n| Step | Request | Sets |\n|------|---------|------|\n| 1 | Get Tenant Info | `{{xc_tenant_fullname}}` |\n| 2 | Create Health Check - tcp-monitor | — |\n| 3 | Create Origin Pool - origin-vuln-bank | — |\n| 4 | Create App Firewall - policy-vuln-bank | — |\n\n---\n\n## Collection Variables\n\n| Variable | Description | Example |\n|----------|-------------|---------|\n| `{{vulnbank_base_url}}` | Domain name only, no `https://` | `vulnbank.example.com` |\n| `{{xc_tenant_fullname}}` | Auto-set by Get Tenant Info | `acmecorp-abcd1234` |\n| `{{xc_api_token}}` | F5 XC API token for Authorization header | — |\n| `{{origin_pool_ip}}` | Origin server IP used in origin pool | `54.255.131.161` |\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.http_loadbalancer.API.Create` |\n| **Method** | `POST` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/http_loadbalancers` |\n| **Docs** | [F5 XC HTTP Load Balancer API](https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer) |"
+          },
+          "response": []
         },
-        "url": {
-          "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "config",
-            "namespaces",
-            "vuln-bank",
-            "http_loadbalancers"
-          ]
+        {
+          "name": "Create HTTP LB with Bot Defense - lb-vuln-bank",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"metadata\": {\n        \"name\": \"lb-vuln-bank\",\n        \"namespace\": \"vuln-bank\",\n        \"labels\": {\n            \"ves.io/app_type\": \"ves-io-vuln-bank-lb-vuln-bank\"\n        },\n        \"annotations\": {},\n        \"description\": \"https://github.com/Commando-X/vuln-bank\",\n        \"disable\": false\n    },\n    \"spec\": {\n        \"domains\": [\n            \"{{vulnbank_base_url}}\"\n        ],\n        \"https_auto_cert\": {\n            \"http_redirect\": true,\n            \"add_hsts\": true,\n            \"port\": 443,\n            \"tls_config\": {\n                \"default_security\": {}\n            },\n            \"no_mtls\": {},\n            \"default_header\": {},\n            \"enable_path_normalize\": {},\n            \"non_default_loadbalancer\": {},\n            \"header_transformation_type\": {\n                \"legacy_header_transformation\": {}\n            },\n            \"connection_idle_timeout\": 120000,\n            \"http_protocol_options\": {\n                \"http_protocol_enable_v1_v2\": {}\n            },\n            \"coalescing_options\": {\n                \"default_coalescing\": {}\n            }\n        },\n        \"downstream_tls_certificate_expiration_timestamps\": [\n            {}\n        ],\n        \"advertise_on_public_default_vip\": {},\n        \"default_route_pools\": [\n            {\n                \"pool\": {\n                    \"tenant\": \"{{xc_tenant_fullname}}\",\n                    \"namespace\": \"vuln-bank\",\n                    \"name\": \"origin-vuln-bank\",\n                    \"kind\": \"origin_pool\"\n                },\n                \"weight\": 1,\n                \"priority\": 1,\n                \"endpoint_subsets\": {}\n            }\n        ],\n        \"routes\": [],\n        \"disable_caching\": {},\n        \"app_firewall\": {\n            \"tenant\": \"{{xc_tenant_fullname}}\",\n            \"namespace\": \"vuln-bank\",\n            \"name\": \"policy-vuln-bank\",\n            \"kind\": \"app_firewall\"\n        },\n        \"add_location\": true,\n        \"no_challenge\": {},\n        \"user_id_client_ip\": {},\n        \"disable_rate_limit\": {},\n        \"waf_exclusion_rules\": [],\n        \"waf_exclusion\": {\n            \"waf_exclusion_inline_rules\": {\n                \"rules\": []\n            }\n        },\n        \"data_guard_rules\": [],\n        \"blocked_clients\": [],\n        \"trusted_clients\": [],\n        \"ddos_mitigation_rules\": [],\n        \"l7_ddos_protection\": {\n            \"mitigation_block\": {},\n            \"default_rps_threshold\": {},\n            \"clientside_action_none\": {},\n            \"ddos_policy_none\": {}\n        },\n        \"service_policies_from_namespace\": {},\n        \"round_robin\": {},\n        \"enable_trust_client_ip_headers\": {\n            \"client_ip_headers\": [\n                \"x-forwarded-for\"\n            ]\n        },\n        \"disable_malicious_user_detection\": {},\n        \"enable_api_discovery\": {\n            \"disable_learn_from_redirect_traffic\": {},\n            \"discovered_api_settings\": {\n                \"purge_duration_for_inactive_discovered_apis\": 7\n            },\n            \"api_crawler\": {\n                \"api_crawler_config\": {\n                    \"domains\": [\n                        {\n                            \"domain\": \"{{vulnbank_base_url}}\",\n                            \"simple_login\": {\n                                \"user\": \"franklin\",\n                                \"password\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///MTIzNDU2\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            \"default_api_auth_discovery\": {}\n        },\n        \"bot_defense\": {\n            \"regional_endpoint\": \"ASIA\",\n            \"policy\": {\n                \"protected_app_endpoints\": [\n                    {\n                        \"metadata\": {\n                            \"name\": \"vulnbank-login\",\n                            \"disable\": false\n                        },\n                        \"http_methods\": [\n                            \"METHOD_POST\"\n                        ],\n                        \"flow_label\": {\n                            \"authentication\": {\n                                \"login\": {\n                                    \"disable_transaction_result\": {}\n                                }\n                            }\n                        },\n                        \"protocol\": \"HTTPS\",\n                        \"domain\": {\n                            \"exact_value\": \"{{vulnbank_base_url}}\"\n                        },\n                        \"path\": {\n                            \"path\": \"/login\"\n                        },\n                        \"query_params\": [],\n                        \"headers\": [],\n                        \"web_mobile\": {\n                            \"header\": {\n                                \"item\": {\n                                    \"exact_values\": [],\n                                    \"regex_values\": [],\n                                    \"transformers\": []\n                                }\n                            },\n                            \"headers\": [],\n                            \"mobile_identifier\": \"HEADERS\"\n                        },\n                        \"mitigation\": {\n                            \"flag\": {\n                                \"append_headers\": {\n                                    \"inference_header_name\": \"Bot-Inference\",\n                                    \"auto_type_header_name\": \"Bot-Automation-Type\"\n                                }\n                            }\n                        },\n                        \"mitigate_good_bots\": {}\n                    },\n                    {\n                        \"metadata\": {\n                            \"name\": \"vulnbank-transfer\",\n                            \"description\": \"Transfer endpoint on Vulnerable Bank\",\n                            \"disable\": false\n                        },\n                        \"http_methods\": [\n                            \"METHOD_POST\"\n                        ],\n                        \"flow_label\": {\n                            \"financial_services\": {\n                                \"money_transfer\": {}\n                            }\n                        },\n                        \"protocol\": \"HTTPS\",\n                        \"domain\": {\n                            \"exact_value\": \"{{vulnbank_base_url}}\"\n                        },\n                        \"path\": {\n                            \"prefix\": \"/transfer\"\n                        },\n                        \"query_params\": [],\n                        \"headers\": [],\n                        \"web_mobile\": {\n                            \"header\": {\n                                \"item\": {\n                                    \"exact_values\": [],\n                                    \"regex_values\": [],\n                                    \"transformers\": []\n                                }\n                            },\n                            \"headers\": [],\n                            \"mobile_identifier\": \"HEADERS\"\n                        },\n                        \"mitigation\": {\n                            \"flag\": {\n                                \"append_headers\": {\n                                    \"inference_header_name\": \"Bot-Inference\",\n                                    \"auto_type_header_name\": \"Bot-Automation-Type\"\n                                }\n                            }\n                        },\n                        \"mitigate_good_bots\": {}\n                    }\n                ],\n                \"js_insert_all_pages\": {\n                    \"javascript_location\": \"AFTER_HEAD\"\n                },\n                \"js_download_path\": \"/common.js\",\n                \"javascript_mode\": \"ASYNC_JS_CACHING\",\n                \"mobile_sdk_config\": {\n                    \"reload_header_name\": \"a877f745790\",\n                    \"mobile_identifier\": {\n                        \"headers\": [\n                            {\n                                \"name\": \"user-agent\",\n                                \"item\": {\n                                    \"exact_values\": [\n                                        \"okhttp/4.12.0\"\n                                    ],\n                                    \"regex_values\": [],\n                                    \"transformers\": []\n                                }\n                            }\n                        ]\n                    }\n                }\n            },\n            \"timeout\": 1000,\n            \"enable_cors_support\": {}\n        },\n        \"default_sensitive_data_policy\": {},\n        \"api_testing\": {\n            \"domains\": [\n                {\n                    \"domain\": \"{{vulnbank_base_url}}\",\n                    \"allow_destructive_methods\": false,\n                    \"credentials\": [\n                        {\n                            \"credential_name\": \"admin\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImFkbWluIiwicGFzc3dvcmQiOiJhZG1pbjEyMyJ9\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"admin\": {}\n                        },\n                        {\n                            \"credential_name\": \"franklin\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImZyYW5rbGluIiwicGFzc3dvcmQiOiIxMjM0NTYifQ==\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"standard\": {}\n                        },\n                        {\n                            \"credential_name\": \"john\",\n                            \"login_endpoint\": {\n                                \"path\": \"/login\",\n                                \"method\": \"POST\",\n                                \"json_payload\": {\n                                    \"clear_secret_info\": {\n                                        \"url\": \"string:///eyJ1c2VybmFtZSI6ImpvaG4iLCJwYXNzd29yZCI6IjEyMzQ1NiJ9\",\n                                        \"provider\": \"\"\n                                    },\n                                    \"secret_encoding_type\": \"EncodingNone\"\n                                },\n                                \"token_response_key\": \"token\"\n                            },\n                            \"standard\": {}\n                        }\n                    ]\n                }\n            ],\n            \"every_day\": {},\n            \"custom_header_value\": \"x-f5-api-testing-identifier\"\n        },\n        \"disable_api_definition\": {},\n        \"disable_ip_reputation\": {},\n        \"disable_client_side_defense\": {},\n        \"graphql_rules\": [],\n        \"protected_cookies\": [],\n        \"system_default_timeouts\": {},\n        \"disable_threat_mesh\": {},\n        \"disable_malware_protection\": {}\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "config",
+                "namespaces",
+                "vuln-bank",
+                "http_loadbalancers"
+              ]
+            },
+            "description": "Creates an HTTPS Load Balancer `lb-vuln-bank` in the `vuln-bank` namespace with Bot Defense enabled.\n\n- **WAF** — App Firewall policy `policy-vuln-bank` (blocking mode)\n- **Bot Defense** — Protected endpoint: `/login` (ASIA region)\n- **API Discovery** — API Crawler enabled\n- **API Testing** — Daily, with `admin`, `franklin`, and `john` credentials\n- **Auto TLS** — Let's Encrypt certificate with HTTP→HTTPS redirect\n\n---\n\n## Prerequisites\n\nRun the following requests **in order** before executing this one:\n\n| Step | Request | Sets |\n|------|---------|------|\n| 1 | Get Tenant Info | `{{xc_tenant_fullname}}` |\n| 2 | Create Health Check - tcp-monitor | — |\n| 3 | Create Origin Pool - origin-vuln-bank | — |\n| 4 | Create App Firewall - policy-vuln-bank | — |\n\n---\n\n## Collection Variables\n\n| Variable | Description | Example |\n|----------|-------------|---------|\n| `{{vulnbank_base_url}}` | Domain name only, no `https://` | `vulnbank.example.com` |\n| `{{xc_tenant_fullname}}` | Auto-set by Get Tenant Info | `acmecorp-abcd1234` |\n| `{{xc_api_token}}` | F5 XC API token | — |\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.http_loadbalancer.API.Create` |\n| **Method** | `POST` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/http_loadbalancers` |\n| **Docs** | [F5 XC HTTP Load Balancer API](https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer) |"
+          },
+          "response": []
         },
-        "description": "Creates HTTP Load Balancer 'lb-vuln-bank' in namespace vuln-bank.\\n\\nPrerequisites (run in order):\\n1. Get Tenant Info — sets {{xc_tenant_fullname}}\\n2. Create Health Check - tcp-monitor\\n3. Create Origin Pool - origin-vuln-bank\\n4. Create App Firewall - policy-vuln-bank\\n\\nCollection variable required:\\n- vulnbank_base_url: domain name only, e.g. vulnbank.example.com (no https://)\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer\\nOperation: ves.io.schema.views.http_loadbalancer.API.Create\\nEndpoint: POST /api/config/namespaces/{namespace}/http_loadbalancers"
-      },
-      "response": []
+        {
+          "name": "List HTTP Load Balancers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "config",
+                "namespaces",
+                "vuln-bank",
+                "http_loadbalancers"
+              ]
+            },
+            "description": "Lists all HTTP load balancers in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.http_loadbalancer.API.List` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/http_loadbalancers` |\n| **Docs** | [F5 XC HTTP Load Balancer API](https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer) |"
+          },
+          "response": []
+        },
+        {
+          "name": "Get HTTP LB - lb-vuln-bank",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers/lb-vuln-bank",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "config",
+                "namespaces",
+                "vuln-bank",
+                "http_loadbalancers",
+                "lb-vuln-bank"
+              ]
+            },
+            "description": "Gets details of the `lb-vuln-bank` HTTP load balancer in the `vuln-bank` namespace.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.http_loadbalancer.API.Get` |\n| **Method** | `GET` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/http_loadbalancers/{name}` |\n| **Docs** | [F5 XC HTTP Load Balancer API](https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer) |"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete HTTP LB - lb-vuln-bank",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers/lb-vuln-bank",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "config",
+                "namespaces",
+                "vuln-bank",
+                "http_loadbalancers",
+                "lb-vuln-bank"
+              ]
+            },
+            "description": "Deletes the `lb-vuln-bank` HTTP load balancer from the `vuln-bank` namespace.\n\n> ⚠️ **Warning:** This removes the LB along with its DNS entry and TLS certificate configuration.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Operation** | `ves.io.schema.views.http_loadbalancer.API.Delete` |\n| **Method** | `DELETE` |\n| **Endpoint** | `/api/config/namespaces/{namespace}/http_loadbalancers/{name}` |\n| **Docs** | [F5 XC HTTP Load Balancer API](https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer) |"
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "List HTTP Load Balancers",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "config",
-            "namespaces",
-            "vuln-bank",
-            "http_loadbalancers"
-          ]
+      "name": "Vuln-Bank - Users Creation",
+      "item": [
+        {
+          "name": "Register User - john",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"john\",\n    \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://{{vulnbank_base_url}}/register",
+              "protocol": "https",
+              "host": [
+                "{{vulnbank_base_url}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "description": "Registers user `john` on the vuln-bank application via the `/register` endpoint.\n\n- **Username:** `john`\n- **Password:** `123456`\n- **Role:** Standard user\n\n> 🔓 **Vulnerability:** This endpoint is susceptible to **BOLA** (Broken Object Level Authorization) — users can access other users' resources by manipulating object IDs in API requests.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Method** | `POST` |\n| **Endpoint** | `{{vulnbank_base_url}}/register` |"
+          },
+          "response": []
         },
-        "description": "Lists all HTTP load balancers in namespace vuln-bank.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer\\nOperation: ves.io.schema.views.http_loadbalancer.API.List"
-      },
-      "response": []
-    },
-    {
-      "name": "Get HTTP LB - lb-vuln-bank",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers/lb-vuln-bank",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "config",
-            "namespaces",
-            "vuln-bank",
-            "http_loadbalancers",
-            "lb-vuln-bank"
-          ]
-        },
-        "description": "Gets details of the lb-vuln-bank HTTP load balancer.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer\\nOperation: ves.io.schema.views.http_loadbalancer.API.Get"
-      },
-      "response": []
-    },
-    {
-      "name": "Delete HTTP LB - lb-vuln-bank",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/config/namespaces/vuln-bank/http_loadbalancers/lb-vuln-bank",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "config",
-            "namespaces",
-            "vuln-bank",
-            "http_loadbalancers",
-            "lb-vuln-bank"
-          ]
-        },
-        "description": "Deletes the lb-vuln-bank HTTP load balancer. WARNING: This removes the LB and its DNS/cert config.\\n\\nAPI Ref: https://docs.cloud.f5.com/docs-v2/api/views-http-loadbalancer\\nOperation: ves.io.schema.views.http_loadbalancer.API.Delete"
-      },
-      "response": []
+        {
+          "name": "Register User - franklin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"franklin\",\n    \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://{{vulnbank_base_url}}/register",
+              "protocol": "https",
+              "host": [
+                "{{vulnbank_base_url}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "description": "Registers user `franklin` on the vuln-bank application via the `/register` endpoint.\n\n- **Username:** `franklin`\n- **Password:** `123456`\n- **Role:** Standard user\n\n> 🔓 **Vulnerability:** This endpoint is susceptible to **BOLA** (Broken Object Level Authorization) — users can access other users' resources by manipulating object IDs in API requests.\n\n---\n\n## API Reference\n\n| Field | Value |\n|-------|-------|\n| **Method** | `POST` |\n| **Endpoint** | `{{vulnbank_base_url}}/register` |"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "auth": {
@@ -641,7 +753,7 @@
   "variable": [
     {
       "key": "xc_tenant",
-      "value": "",
+      "value": "mandiritunas",
       "description": "Your F5 XC tenant name (subdomain). E.g. if your console URL is mycompany.console.ves.volterra.io, enter: mycompany"
     },
     {
@@ -666,9 +778,7 @@
     },
     {
       "key": "origin_pool_ip",
-      "value": "",
-      "type": "string",
-      "description": "Your vuln-bank server IP"
+      "value": "54.255.131.161"
     }
   ]
 }

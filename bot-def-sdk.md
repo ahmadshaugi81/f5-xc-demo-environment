@@ -75,40 +75,12 @@ Or download directly from [Adoptium](https://adoptium.net/).
 
 ## Step 1 — Get Required Files from Ubuntu Server
 
-You need two files from your Ubuntu server: the compiled APK and the keystore used to sign it.
+You need two files from your Ubuntu server: the compiled APK and the keystore used to sign it. Download the files via Python HTTP Server (Recommended), SCP, or other preferred method.
 
-### Option A — Download via Python HTTP Server (Recommended)
+### Understand the Keystore Details
 
-On your **Ubuntu server**, serve the files:
-
-```bash
-cd /home/ubuntu/vuln-bank-mobile/android/app
-python3 -m http.server 8888
-```
-
-Make sure port 8888 is open:
-
-```bash
-sudo ufw allow 8888
-```
-
-On your **Mac browser**, download both files:
-
-```
-http://YOUR_UBUNTU_SERVER_IP:8888/debug.keystore
-http://YOUR_UBUNTU_SERVER_IP:8888/build/outputs/apk/release/app-release.apk
-```
-
-### Option B — SCP from Mac Terminal
-
-```bash
-scp ubuntu@YOUR_UBUNTU_SERVER_IP:/home/ubuntu/vuln-bank-mobile/android/app/debug.keystore ~/Downloads/
-scp ubuntu@YOUR_UBUNTU_SERVER_IP:/home/ubuntu/vuln-bank-mobile/android/app/build/outputs/apk/release/app-release.apk ~/Downloads/
-```
-
----
-
-## Step 2 — Understand the Keystore Details
+<details>
+<summary>Click to expand — keystore background and credentials</summary>
 
 The `vuln-bank-mobile` release APK is signed with the **debug keystore**. This is because the `build.gradle` release buildType references `signingConfigs.debug`:
 
@@ -135,6 +107,8 @@ The keystore credentials for `vuln-bank-mobile` are:
 > - **storepass** — password to open the vault
 > - **keyname** — alias/label of the specific key inside the vault
 > - **keypass** — password for that specific key
+
+</details>
 
 ---
 

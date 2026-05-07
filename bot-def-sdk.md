@@ -77,7 +77,7 @@ Or download directly from [Adoptium](https://adoptium.net/).
 
 You need two files from your Ubuntu server: the compiled APK and the keystore used to sign it. Download the files via Python HTTP Server (Recommended), SCP, or other preferred method.
 
-> Understand the Keystore Details
+> **Understand the Keystore Details**
 > 
 > <details>
 > <summary>Click to expand — keystore background and credentials</summary>

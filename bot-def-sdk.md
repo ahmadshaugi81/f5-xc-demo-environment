@@ -77,38 +77,38 @@ Or download directly from [Adoptium](https://adoptium.net/).
 
 You need two files from your Ubuntu server: the compiled APK and the keystore used to sign it. Download the files via Python HTTP Server (Recommended), SCP, or other preferred method.
 
-### Understand the Keystore Details
-
-<details>
-<summary>Click to expand — keystore background and credentials</summary>
-
-The `vuln-bank-mobile` release APK is signed with the **debug keystore**. This is because the `build.gradle` release buildType references `signingConfigs.debug`:
-
-```groovy
-buildTypes {
-    release {
-        signingConfig signingConfigs.debug   // ← uses debug keystore for release
-        ...
-    }
-}
-```
-
-The keystore credentials for `vuln-bank-mobile` are:
-
-| Parameter | Value |
-|---|---|
-| `--keystore` | `debug.keystore` (file path on your Mac) |
-| `--storepass` | `android` |
-| `--keyname` | `androiddebugkey` |
-| `--keypass` | `android` |
-
-> **What do these mean?**
-> - **keystore** — the vault file that holds the signing key
-> - **storepass** — password to open the vault
-> - **keyname** — alias/label of the specific key inside the vault
-> - **keypass** — password for that specific key
-
-</details>
+> Understand the Keystore Details
+> 
+> <details>
+> <summary>Click to expand — keystore background and credentials</summary>
+> 
+> The `vuln-bank-mobile` release APK is signed with the **debug keystore**. This is because the `build.gradle` release buildType references `signingConfigs.debug`:
+> 
+> ```groovy
+> buildTypes {
+>     release {
+>         signingConfig signingConfigs.debug   // ← uses debug keystore for release
+>         ...
+>     }
+> }
+> ```
+> 
+> The keystore credentials for `vuln-bank-mobile` are:
+> 
+> | Parameter | Value |
+> |---|---|
+> | `--keystore` | `debug.keystore` (file path on your Mac) |
+> | `--storepass` | `android` |
+> | `--keyname` | `androiddebugkey` |
+> | `--keypass` | `android` |
+> 
+> > **What do these mean?**
+> > - **keystore** — the vault file that holds the signing key
+> > - **storepass** — password to open the vault
+> > - **keyname** — alias/label of the specific key inside the vault
+> > - **keypass** — password for that specific key
+> 
+> </details>
 
 ---
 

@@ -40,8 +40,10 @@ source ~/selenium-env/bin/activate
 **Step 3 — Install dependencies:**
 
 ```bash
-pip3 install undetected-chromedriver selenium
+pip3 install setuptools undetected-chromedriver selenium
 ```
+
+> `setuptools` is required on Python 3.12+ — `distutils` was removed from the standard library and `undetected-chromedriver` depends on it.
 
 | Package | Purpose |
 |---|---|

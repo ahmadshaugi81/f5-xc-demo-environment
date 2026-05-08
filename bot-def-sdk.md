@@ -77,7 +77,7 @@ Or download directly from [Adoptium](https://adoptium.net/).
 
 You need two files from your Ubuntu server: the compiled APK and the keystore used to sign it. Download the files via Python HTTP Server (Recommended), SCP, or other preferred method.
 
-> **Understand the Keystore Details**
+**Understand the Keystore Details**
 > 
 > <details>
 > <summary>Click to expand — keystore background and credentials</summary>
@@ -109,6 +109,18 @@ You need two files from your Ubuntu server: the compiled APK and the keystore us
 > > - **keypass** — password for that specific key
 > 
 > </details>
+
+---
+
+## Step 2 — Get Required Files from F5 XC Bot Defense Console
+
+Three files are needed from the F5 XC Console. For the full step-by-step walkthrough on generating and downloading each file, refer to the [F5 Bot Defense official documentation](https://docs.cloud.f5.com/docs-v2/bot-defense/how-tos/plan-bot-defense).
+
+| File | What it is |
+|---|---|
+| F5 Distributed Cloud Mobile SDK (`.dat`) | SDK binary for Android |
+| Mobile base configuration file (`.dat`) | App-specific Bot Defense configuration tied to your tenant |
+| F5 Distributed Cloud Mobile SDK Integrator (`.jar`) | No-code tool that fuses the SDK and configuration into your APK |
 
 ---
 

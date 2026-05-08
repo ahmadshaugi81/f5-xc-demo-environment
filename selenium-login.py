@@ -8,6 +8,7 @@ Run:
   python3 selenium-login.py
 """
 
+import os
 import random
 import time
 import undetected_chromedriver as uc
@@ -62,7 +63,7 @@ def build_driver():
     driver = uc.Chrome(
         options=options,
         browser_executable_path="/usr/bin/chromium-browser",
-        driver_executable_path="/usr/bin/chromedriver",
+        driver_executable_path=os.path.expanduser("~/selenium-env/bin/chromedriver"),
     )
 
     # Patch navigator.webdriver to undefined via CDP

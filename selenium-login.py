@@ -11,6 +11,7 @@ Run:
 import os
 import random
 import time
+import urllib.request
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -59,6 +60,7 @@ def build_driver():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-gpu")
     options.add_argument("--headless=new")
+    options.add_argument("--disable-dev-shm-usage")
 
     driver = uc.Chrome(
         options=options,
@@ -128,8 +130,18 @@ def simulate_login(driver, cred, iteration):
         print(f"[{iteration}] Error: {e}")
 
 
+def get_public_ip():
+    try:
+        return urllib.request.urlopen("https://api.ipify.org").read().decode()
+    except Exception:
+        return "unavailable"
+
+
 def main():
-    print(f"Starting {ITERATIONS} login simulations against {TARGET_URL}")
+    public_ip = get_public_ip()
+    print(f"Public IP       : {public_ip}")
+    print(f"Target          : {TARGET_URL}")
+    print(f"Iterations      : {ITERATIONS}")
     print("─" * 60)
 
     for i in range(1, ITERATIONS + 1):

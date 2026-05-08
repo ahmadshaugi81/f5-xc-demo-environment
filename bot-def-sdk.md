@@ -1,4 +1,7 @@
-# UNDER CONSTRUCTION!!!
+[Home Page](README.md) · [Vuln-Bank Installation](vuln-bank-install.md) · [F5 XC Configuration](xc-config.md) · [Traffic Generator Setup](traffic-generator.md)
+
+---
+
 # F5 Bot Defense Mobile SDK — Setup Guide (Android)
 
 > This guide documents how to fuse the F5 Bot Defense Mobile SDK into the `vuln-bank-mobile` APK using the **F5 Mobile SDK Integrator** (no-code approach). This is a companion guide to [Vuln-Bank Installation](vuln-bank-install.md) and [F5 XC Configuration](xc-config.md).
@@ -48,14 +51,15 @@ Android Device
 
 ### On Your Mac (where you run the Integrator)
 
-| Requirement | Version | Check |
+| Requirement | Description | Source |
 |---|---|---|
-| Java JDK | 17+ | `java -version` |
-| F5 Integrator JAR | e.g. `Integrator-Android-7.0.0.jar` | Provided by F5 |
-| F5 SDK Plugin `.dat` | e.g. `F5-XC-Mobile-SDK-Integrator-Android-plugin-4.7.0-7.dat` | Provided by F5 |
-| Plugin config `.dat` | `my-plugin-config.dat` | Generated from F5 XC console |
-| `app-release.apk` | Built from vuln-bank-mobile | See vuln-bank setup guide |
-| `debug.keystore` | From vuln-bank-mobile Android project | See below |
+| Java JDK 17+ | Required to run the Integrator JAR | `brew install openjdk@17` or [Adoptium](https://adoptium.net/) |
+| F5 Distributed Cloud Mobile SDK Integrator (`.jar`) | e.g. `Integrator-Android-7.0.0.jar` | Provided by F5 |
+| F5 Distributed Cloud Mobile SDK (`.dat`) | e.g. `F5-XC-Mobile-SDK-Integrator-Android-plugin-4.7.0-7.dat` | Provided by F5 |
+| Mobile base configuration file (`.json`) | Downloaded from F5 XC Console — input to `create_config.py` | F5 XC Console |
+| Mobile base configuration file (`.dat`) | Generated locally by running `create_config.py` in Step 4 | Generated in Step 4 |
+| `app-release.apk` | Built from vuln-bank-mobile | See [vuln-bank-install.md](vuln-bank-install.md) |
+| `debug.keystore` | From vuln-bank-mobile Android project | See Step 1 below |
 
 ### Install Java on Mac (if not installed)
 
@@ -142,12 +146,27 @@ mv ~/Downloads/app-release.apk .
 mv ~/Downloads/debug.keystore .
 ```
 
-**3. Copy the F5 files here too** (adjust filenames to match your versions):
+**3. Copy the F5 files here too** (adjust filenames to match your downloaded versions):
 
 ```bash
 cp /path/to/Integrator-Android-x.x.x.jar .
 cp /path/to/F5-XC-Mobile-SDK-Integrator-Android-plugin-x.x.x-x.dat .
-cp /path/to/mobile-base-config.dat .
+cp /path/to/your-base-config.json .
+```
+
+**4. Verify all files are present:**
+
+```bash
+ls ~/f5-integrator/
+```
+
+Expected output:
+```
+Integrator-Android-x.x.x.jar
+F5-XC-Mobile-SDK-Integrator-Android-plugin-x.x.x-x.dat
+your-base-config.json
+app-release.apk
+debug.keystore
 ```
 
 ---
@@ -224,7 +243,7 @@ java -jar Integrator-Android-7.0.0.jar \
 Verify the fused APK was created:
 
 ```bash
-ls -lh sdkintegrator-apk-release.apk
+ls -lh app-release-with-plugin.apk
 ```
 
 ---
@@ -329,36 +348,6 @@ Confirm filenames match exactly what you reference in the command — versions i
 
 ---
 
-## 📋 Quick Reference Checklist
-
-```
-PREPARATION
-[ ] Java 17+ installed on Mac
-[ ] All 5 files present in working directory:
-    [ ] Integrator-Android-X.X.X.jar
-    [ ] F5-XC-Mobile-SDK-Integrator-Android-plugin-X.X.X.dat
-    [ ] my-plugin-config.dat
-    [ ] app-release.apk
-    [ ] debug.keystore
-
-FUSING
-[ ] Integrator command ran without errors
-[ ] sdkintegrator-apk-release.apk created in working directory
-
-INSTALLATION
-[ ] Original APK uninstalled from device (if previously installed)
-[ ] Fused APK installed on device
-[ ] App launches successfully
-[ ] App connects to vuln-bank backend
-
-VERIFICATION
-[ ] Proxy tool captures requests from fused app
-[ ] F5 telemetry headers present in outbound requests
-[ ] F5 XC Bot Defense console shows mobile traffic
-```
-
----
-
 ## 📚 References
 
 - [F5 Distributed Cloud API Documentation](https://docs.cloud.f5.com/docs-v2/api)
@@ -380,3 +369,9 @@ Both original projects are licensed under the **MIT License**:
 - [vuln-bank-mobile LICENSE](https://github.com/Commando-X/vuln-bank-mobile/blob/main/LICENSE)
 
 This setup guide is an independent documentation effort. All rights to the original projects remain with their respective authors.
+
+---
+
+## Quick Links
+
+[Home Page](README.md) · [Vuln-Bank Installation](vuln-bank-install.md) · [F5 XC Configuration](xc-config.md) · [Traffic Generator Setup](traffic-generator.md)

@@ -16,7 +16,7 @@ This guide walks through setting up a hardened Selenium script that simulates re
 
 - Python 3.8+
 - Google Chrome installed on your machine
-- pip
+- pip3
 
 ---
 
@@ -25,14 +25,13 @@ This guide walks through setting up a hardened Selenium script that simulates re
 **Install dependencies:**
 
 ```bash
-pip install undetected-chromedriver selenium faker
+pip3 install undetected-chromedriver selenium
 ```
 
 | Package | Purpose |
 |---|---|
 | `undetected-chromedriver` | Auto-patches ChromeDriver to bypass bot signature detection |
 | `selenium` | Browser automation framework |
-| `faker` | Generates realistic random User-Agent strings and other identity data |
 
 **Verify Chrome is installed:**
 
@@ -220,7 +219,7 @@ if __name__ == "__main__":
 
 **Step 1 — Set your target URL:**
 
-Open `selenium-login.py` and update line 16:
+Open `selenium-login.py` and update the `TARGET_URL` variable at the top of the config section:
 
 ```python
 TARGET_URL = "https://vulnbank.yourdomain.com"

@@ -154,47 +154,72 @@ cp /path/to/mobile-base-config.dat .
 
 ## Step 4 — Run the F5 Mobile SDK Integrator
 
+The integration is done in **two commands**: first generate a configuration profile, then run the Integrator to fuse the SDK into the APK.
+
 From your working directory:
 
 ```bash
 cd ~/f5-integrator
+```
 
+---
+
+### Command 1 — Generate the Configuration Profile
+
+```bash
+python3 ./create_config.py \
+  --target-os Android \
+  --apiguard-init on-application-create \
+  --apiguard-config ./your-base-config.json \
+  --environment prod \
+  --enable-logs \
+  --outfile your-base-config.dat
+```
+
+> Replace `your-base-config.json` with the actual filename of the base configuration file you downloaded from the F5 XC Console (e.g. `mytechlab-vulnbank-base-config.json`). Use the same name prefix for `--outfile`.
+
+| Parameter | Purpose |
+|---|---|
+| `--target-os` | Target platform — `Android` or `iOS` |
+| `--apiguard-init` | SDK initialization trigger — `on-application-create` starts the SDK when the app launches |
+| `--apiguard-config` | Base configuration file downloaded from F5 XC Console (`.json`) |
+| `--environment` | Deployment environment — use `prod` for production |
+| `--enable-logs` | Allows APIGuard logs to appear in the console |
+| `--outfile` | Output filename for the generated integration profile (`.dat`) |
+
+This produces `your-base-config.dat` — the integration profile used in Command 2.
+
+---
+
+### Command 2 — Fuse the SDK into the APK
+
+```bash
 java -jar Integrator-Android-7.0.0.jar \
   --plugin F5-XC-Mobile-SDK-Integrator-Android-plugin-4.7.0-7.dat \
-  --plugin my-plugin-config.dat \
+  --plugin your-base-config.dat \
   app-release.apk \
-  --output sdkintegrator-apk-release.apk \
+  --output app-release-with-plugin.apk \
   --keystore debug.keystore \
   --storepass android \
   --keyname androiddebugkey \
   --keypass android
 ```
 
-### Parameter Breakdown
+> Replace `your-base-config.dat` with the filename you used in `--outfile` from Command 1. Adjust the Integrator JAR and plugin `.dat` filenames to match your downloaded versions.
 
-| Parameter | Value | Purpose |
-|---|---|---|
-| `-jar` | `Integrator-Android-7.0.0.jar` | The Integrator tool itself |
-| `--plugin` | `F5-XC-Mobile-SDK-Integrator-Android-plugin-4.7.0-7.dat` | F5 SDK plugin binary |
-| `--plugin` | `my-plugin-config.dat` | Your app-specific Bot Defense config |
-| (input) | `app-release.apk` | Original APK to fuse |
-| `--output` | `sdkintegrator-apk-release.apk` | Output fused APK filename |
-| `--keystore` | `debug.keystore` | Keystore file to re-sign the fused APK |
-| `--storepass` | `android` | Password to open the keystore |
-| `--keyname` | `androiddebugkey` | Alias of the signing key |
-| `--keypass` | `android` | Password for the signing key |
+| Parameter | Purpose |
+|---|---|
+| `-jar` | F5 Distributed Cloud Mobile SDK Integrator (`.jar`) |
+| `--plugin` (1st) | F5 Distributed Cloud Mobile SDK Integrator plugin binary (`.dat`) |
+| `--plugin` (2nd) | Integration profile generated in Command 1 |
+| (input) | Original APK to fuse |
+| `--output` | Output filename for the fused APK |
+| `--keystore` | Keystore file to re-sign the fused APK |
+| `--storepass` | Password to open the keystore |
+| `--keyname` | Alias of the signing key |
+| `--keypass` | Password for the signing key |
 
-> ⚠️ The Integrator **re-signs** the APK after fusing. You must provide the same keystore that was used to sign the original APK, otherwise the fused APK will be rejected by Android as having a mismatched signature.
-
-### Expected Output
-
-```
-Processing app-release.apk...
-Injecting F5 Bot Defense SDK...
-Re-signing APK...
-Output written to: sdkintegrator-apk-release.apk
-Integration complete.
-```
+> ⚠️ The Integrator **re-signs** the APK after fusing. You must provide the same keystore used to sign the original APK — otherwise Android will reject the fused APK due to a signature mismatch.
 
 Verify the fused APK was created:
 
@@ -206,38 +231,7 @@ ls -lh sdkintegrator-apk-release.apk
 
 ## Step 5 — Install Fused APK on Android Device
 
-### Option A — Install via ADB (USB)
-
-Connect your Android device via USB, enable USB debugging, then:
-
-```bash
-adb devices   # verify device is detected
-adb install sdkintegrator-apk-release.apk
-```
-
-> ⚠️ If the original APK is already installed, uninstall it first:
-> ```bash
-> adb uninstall com.vulnerablebank.app   # adjust package name
-> ```
-
-### Option B — Serve via HTTP and Download on Device
-
-```bash
-cd ~/f5-integrator
-python3 -m http.server 8888
-```
-
-On your **Android device browser**:
-
-```
-http://YOUR_MAC_IP:8888/sdkintegrator-apk-release.apk
-```
-
-Download and install. Make sure unknown sources is enabled:
-
-```
-Settings → Security → Install Unknown Apps → Allow your browser
-```
+Install the fused APK to your Android device or emulator to simulate traffic and testing.
 
 ---
 
@@ -263,6 +257,8 @@ User-Agent: okhttp/4.12.0
 Content-Type: application/json
 X-F5-BotDefense: <telemetry_token>
 ```
+
+Also check the F5 XC Bot Defense Console to verify that request traffic has been detected and is visible in the Console.
 
 > The presence of the `X-F5-BotDefense` header (or equivalent, depending on your config) confirms the SDK is working and attaching telemetry to requests.
 

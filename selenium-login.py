@@ -53,12 +53,17 @@ def simulate_login(page, cred, iteration):
     print(f"[{iteration}] Logging in as: {cred['username']}")
 
     try:
-        # Navigate to login page
-        page.goto(f"{TARGET_URL}/login", wait_until="domcontentloaded")
+        # Navigate to login page — networkidle waits for React to finish rendering
+        page.goto(f"{TARGET_URL}/login", wait_until="networkidle", timeout=30000)
         human_delay(2, 5)   # simulate page read time
 
-        # Fill username — character by character
-        username_field = page.locator("input[name='username']")
+        # Try multiple selector strategies to find the username field
+        username_field = (
+            page.locator("input[name='username']").first
+            or page.locator("input[type='text']").first
+            or page.locator("input[placeholder*='username' i]").first
+        )
+        username_field.wait_for(state="visible", timeout=15000)
         username_field.click()
         human_delay(0.3, 0.8)
         for char in cred["username"]:
@@ -68,7 +73,10 @@ def simulate_login(page, cred, iteration):
         human_delay(0.5, 1.5)
 
         # Fill password — character by character
-        password_field = page.locator("input[name='password']")
+        password_field = (
+            page.locator("input[name='password']").first
+            or page.locator("input[type='password']").first
+        )
         password_field.click()
         human_delay(0.3, 0.8)
         for char in cred["password"]:
@@ -96,6 +104,13 @@ def simulate_login(page, cred, iteration):
 
     except Exception as e:
         print(f"[{iteration}] Error: {e}")
+        # Save screenshot to help diagnose selector or page load issues
+        try:
+            screenshot_path = f"/tmp/selenium-error-{iteration}.png"
+            page.screenshot(path=screenshot_path)
+            print(f"[{iteration}] Screenshot saved: {screenshot_path}")
+        except Exception:
+            pass
 
 
 def main():

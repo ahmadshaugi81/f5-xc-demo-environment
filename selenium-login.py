@@ -4,21 +4,19 @@ Hardened Selenium — vuln-bank Login Traffic Simulator
 Simulates human-like login traffic to POST /login on the vuln-bank app.
 Rotates between john and franklin credentials with randomized timing.
 
+Uses Playwright with Chromium (ARM64-compatible, non-snap).
+
 Run:
   python3 selenium-login.py
 """
 
-import os
 import random
 import time
 import urllib.request
-import undetected_chromedriver as uc
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from playwright.sync_api import sync_playwright
 
 # ── Config ────────────────────────────────────────────────────
-TARGET_URL   = "https://YOUR_VULNBANK_DOMAIN"   # e.g. https://vulnbank.yourdomain.com
+TARGET_URL   = "https://vulnbank.mytechlab.my.id"
 ITERATIONS   = 50                               # number of login attempts to simulate
 WAIT_BETWEEN = (5, 15)                          # seconds between each login session
 
@@ -42,99 +40,62 @@ def human_delay(min_s=0.5, max_s=2.0):
     time.sleep(random.uniform(min_s, max_s))
 
 
-def type_like_human(element, text):
-    """Type text character by character with random keystroke delays."""
-    for char in text:
-        element.send_keys(char)
-        time.sleep(random.uniform(0.05, 0.2))
-
-
-def build_driver():
-    """Build a hardened undetected Chromium driver instance."""
-    ua = random.choice(USER_AGENTS)
-
-    options = uc.ChromeOptions()
-    options.add_argument(f"--user-agent={ua}")
-    options.add_argument("--window-size=1366,768")
-    options.add_argument("--disable-notifications")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--headless=new")
-    options.add_argument("--disable-dev-shm-usage")
-
-    driver = uc.Chrome(
-        options=options,
-        browser_executable_path="/usr/bin/chromium-browser",
-        driver_executable_path=os.path.expanduser("~/selenium-env/bin/chromedriver"),
-    )
-
-    # Patch navigator.webdriver to undefined via CDP
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-        "source": """
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined
-            });
-        """
-    })
-
-    return driver
-
-
-# ── Main loop ─────────────────────────────────────────────────
-
-def simulate_login(driver, cred, iteration):
-    print(f"[{iteration}] Logging in as: {cred['username']}")
-
-    try:
-        # Navigate to login page
-        driver.get(f"{TARGET_URL}/login")
-        human_delay(2, 5)   # simulate page read time
-
-        wait = WebDriverWait(driver, 10)
-
-        # Fill username
-        username_field = wait.until(
-            EC.presence_of_element_located((By.NAME, "username"))
-        )
-        human_delay(0.5, 1.5)
-        type_like_human(username_field, cred["username"])
-
-        human_delay(0.5, 1.5)
-
-        # Fill password
-        password_field = driver.find_element(By.NAME, "password")
-        type_like_human(password_field, cred["password"])
-
-        human_delay(0.5, 2.0)   # simulate user pausing before submitting
-
-        # Click submit
-        submit_btn = driver.find_element(By.XPATH, "//button[@type='submit']")
-        submit_btn.click()
-
-        human_delay(2, 4)   # wait for response / dashboard load
-
-        print(f"[{iteration}] Current URL after login: {driver.current_url}")
-
-        # Optional: navigate to dashboard briefly before logging out
-        human_delay(3, 8)
-
-        # Logout if possible
-        try:
-            logout = driver.find_element(By.XPATH, "//*[contains(text(),'Logout') or contains(text(),'Sign out')]")
-            logout.click()
-            human_delay(1, 3)
-        except Exception:
-            pass   # no logout button found — continue
-
-    except Exception as e:
-        print(f"[{iteration}] Error: {e}")
-
-
 def get_public_ip():
     try:
         return urllib.request.urlopen("https://api.ipify.org").read().decode()
     except Exception:
         return "unavailable"
+
+
+# ── Main simulation ───────────────────────────────────────────
+
+def simulate_login(page, cred, iteration):
+    print(f"[{iteration}] Logging in as: {cred['username']}")
+
+    try:
+        # Navigate to login page
+        page.goto(f"{TARGET_URL}/login", wait_until="domcontentloaded")
+        human_delay(2, 5)   # simulate page read time
+
+        # Fill username — character by character
+        username_field = page.locator("input[name='username']")
+        username_field.click()
+        human_delay(0.3, 0.8)
+        for char in cred["username"]:
+            page.keyboard.type(char)
+            time.sleep(random.uniform(0.05, 0.2))
+
+        human_delay(0.5, 1.5)
+
+        # Fill password — character by character
+        password_field = page.locator("input[name='password']")
+        password_field.click()
+        human_delay(0.3, 0.8)
+        for char in cred["password"]:
+            page.keyboard.type(char)
+            time.sleep(random.uniform(0.05, 0.2))
+
+        human_delay(0.5, 2.0)   # simulate user pausing before submitting
+
+        # Click submit
+        page.locator("button[type='submit']").click()
+        human_delay(2, 4)   # wait for response / dashboard load
+
+        print(f"[{iteration}] Current URL after login: {page.url}")
+
+        human_delay(3, 8)   # simulate browsing after login
+
+        # Logout if possible
+        try:
+            logout = page.locator("text=Logout, text=Sign out").first
+            if logout.is_visible():
+                logout.click()
+                human_delay(1, 3)
+        except Exception:
+            pass   # no logout button found — continue
+
+    except Exception as e:
+        print(f"[{iteration}] Error: {e}")
 
 
 def main():
@@ -144,19 +105,47 @@ def main():
     print(f"Iterations      : {ITERATIONS}")
     print("─" * 60)
 
-    for i in range(1, ITERATIONS + 1):
-        cred   = random.choice(CREDENTIALS)
-        driver = build_driver()
+    with sync_playwright() as p:
+        for i in range(1, ITERATIONS + 1):
+            cred = random.choice(CREDENTIALS)
+            ua   = random.choice(USER_AGENTS)
 
-        try:
-            simulate_login(driver, cred, i)
-        finally:
-            driver.quit()
+            # New browser instance per session — avoids session fingerprinting
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-gpu",
+                    "--disable-dev-shm-usage",
+                    "--disable-blink-features=AutomationControlled",
+                ],
+            )
 
-        # Wait between sessions — new driver instance each time
-        wait_s = random.uniform(*WAIT_BETWEEN)
-        print(f"[{i}] Waiting {wait_s:.1f}s before next session...")
-        time.sleep(wait_s)
+            context = browser.new_context(
+                user_agent=ua,
+                viewport={"width": 1366, "height": 768},
+                locale="en-US",
+                java_script_enabled=True,
+            )
+
+            # Patch navigator.webdriver to undefined
+            context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                });
+            """)
+
+            page = context.new_page()
+
+            try:
+                simulate_login(page, cred, i)
+            finally:
+                context.close()
+                browser.close()
+
+            wait_s = random.uniform(*WAIT_BETWEEN)
+            print(f"[{i}] Waiting {wait_s:.1f}s before next session...")
+            time.sleep(wait_s)
 
     print("─" * 60)
     print("Simulation complete.")

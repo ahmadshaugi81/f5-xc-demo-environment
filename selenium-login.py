@@ -48,7 +48,7 @@ def type_like_human(element, text):
 
 
 def build_driver():
-    """Build a hardened undetected Chrome driver instance."""
+    """Build a hardened undetected Chromium driver instance."""
     ua = random.choice(USER_AGENTS)
 
     options = uc.ChromeOptions()

@@ -2,21 +2,22 @@
 
 ---
 
-# Hardened Selenium Traffic Simulation — Login Flow
+# Hardened Browser Traffic Simulation — Login Flow
 
-This guide walks through setting up a hardened Selenium script that simulates realistic human login traffic to the `POST /login` endpoint on the vuln-bank application.
+This guide walks through setting up a hardened Playwright script that simulates realistic human login traffic to the `POST /login` endpoint on the vuln-bank application.
 
-**Why hardened?** Default Selenium is easily detected by bot signature engines (F5 XC WAAP, Cloudflare, etc.) due to exposed automation flags. Hardening removes these signals to produce traffic that looks like a real browser user.
+**Why hardened?** Default browser automation tools are easily detected by bot signature engines (F5 XC WAAP, Cloudflare, etc.) due to exposed automation flags. Hardening removes these signals to produce traffic that looks like a real browser user.
 
-> This is useful for testing how traffic appears in F5 XC dashboards **without** Bot Defense enabled. With Bot Defense enabled, even hardened Selenium will be caught by JS telemetry analysis.
+> This is useful for testing how traffic appears in F5 XC dashboards **without** Bot Defense enabled. With Bot Defense enabled, even hardened browser automation will be caught by JS telemetry analysis.
 
 ---
 
 ## Prerequisites
 
 - Python 3.8+
-- Chromium browser installed on your machine (works on both amd64 and arm64)
 - pip3
+
+> No need to install Chrome or Chromium manually — Playwright downloads its own browser binary automatically, with native support for both `amd64` and `arm64`.
 
 ---
 
@@ -40,25 +41,20 @@ source ~/selenium-env/bin/activate
 **Step 3 — Install dependencies:**
 
 ```bash
-pip3 install setuptools undetected-chromedriver selenium
+pip3 install playwright
 ```
-
-> `setuptools` is required on Python 3.12+ — `distutils` was removed from the standard library and `undetected-chromedriver` depends on it.
 
 | Package | Purpose |
 |---|---|
-| `undetected-chromedriver` | Auto-patches ChromeDriver to bypass bot signature detection |
-| `selenium` | Browser automation framework |
+| `playwright` | Browser automation framework with built-in stealth and ARM64-compatible Chromium |
 
-**Step 4 — Install Chromium and ChromeDriver:**
-
-Chromium works on both `amd64` and `arm64` — a single install command covers all architectures:
+**Step 4 — Download Playwright's Chromium:**
 
 ```bash
-sudo apt update
-sudo apt install chromium-browser chromium-driver -y
-chromium-browser --version
+playwright install chromium
 ```
+
+This downloads a Playwright-managed Chromium binary — no snap conflicts, no architecture issues.
 
 > **Note:** Every time you open a new terminal session, re-activate the venv before running the script:
 > ```bash
@@ -69,16 +65,16 @@ chromium-browser --version
 
 ## Section 2 — Hardening Techniques
 
-Standard Selenium exposes several signals that bot detection engines look for. Here is what this script patches:
+Standard browser automation exposes several signals that bot detection engines look for. Here is what this script patches:
 
-| Signal | Default Selenium | This Script |
+| Signal | Default | This Script |
 |---|---|---|
-| `navigator.webdriver` | `true` — instantly flags automation | Patched to `undefined` via CDP |
-| User-Agent | Contains `HeadlessChrome` or automation strings | Randomized realistic browser UA |
-| Automation flags | `--enable-automation` switch present | Removed via `undetected-chromedriver` |
-| Browser fingerprint | Automation-typical | Patched by `undetected-chromedriver` |
+| `navigator.webdriver` | `true` — instantly flags automation | Patched to `undefined` via `add_init_script` |
+| User-Agent | Contains automation strings | Randomized realistic browser UA per session |
+| Automation flags | `--enable-automation` present | Removed via `--disable-blink-features=AutomationControlled` |
 | Interaction timing | Instant (robotic) | Random delays between keystrokes and actions |
 | Login credentials | Fixed single user | Randomly rotates between `john` and `franklin` |
+| Browser session | Persistent (trackable) | New browser context per session |
 
 ---
 
@@ -114,7 +110,9 @@ python3 selenium-login.py
 You should see output like:
 
 ```
-Starting 50 login simulations against https://vulnbank.yourdomain.com
+Public IP       : 54.x.x.x
+Target          : https://vulnbank.yourdomain.com
+Iterations      : 50
 ────────────────────────────────────────────────────────────
 [1] Logging in as: franklin
 [1] Current URL after login: https://vulnbank.yourdomain.com/dashboard
@@ -144,9 +142,9 @@ Each login session produces:
 | Signal | Value |
 |---|---|
 | Method | `POST /login` |
-| Source IP | Your machine's IP (rotated via XFF if behind proxy) |
-| User-Agent | Randomized real browser UA |
-| Bot signature | Unlikely to trigger (hardened driver) |
+| Source IP | Your machine's public IP |
+| User-Agent | Randomized real browser UA per session |
+| Bot signature | Unlikely to trigger (hardened browser) |
 | Bot Defense telemetry | **Not present** (no SDK, no JS injection) |
 
 In the F5 XC Console (`vuln-bank` namespace → Security Events), these requests will appear as normal authenticated traffic unless Bot Defense is enabled.
@@ -155,8 +153,8 @@ In the F5 XC Console (`vuln-bank` namespace → Security Events), these requests
 
 ## References
 
-- [undetected-chromedriver — GitHub](https://github.com/ultrafunkamsterdam/undetected-chromedriver)
-- [Selenium Documentation](https://www.selenium.dev/documentation/)
+- [Playwright Documentation](https://playwright.dev/python/docs/intro)
+- [Playwright — Chromium](https://playwright.dev/docs/browsers)
 - [F5 Bot Defense Documentation](https://docs.cloud.f5.com/docs-v2/bot-defense)
 - [vuln-bank — GitHub](https://github.com/Commando-X/vuln-bank)
 

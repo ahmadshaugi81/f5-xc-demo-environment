@@ -126,35 +126,28 @@ Three files are needed from the F5 XC Console. For the full step-by-step walkthr
 
 ## Step 3 — Prepare Your Working Directory
 
-Organize all required files in one directory on your Mac for convenience:
+Organize all required files in one directory on your PC for convenience.
+
+**1. Create a working directory:**
 
 ```bash
 mkdir ~/f5-integrator
 cd ~/f5-integrator
-
-# Move downloaded files here
-mv ~/Downloads/app-release.apk .
-mv ~/Downloads/debug.keystore .
-
-# Copy F5 files here too (adjust filenames to your versions)
-cp /path/to/Integrator-Android-7.0.0.jar .
-cp /path/to/F5-XC-Mobile-SDK-Integrator-Android-plugin-4.7.0-7.dat .
-cp /path/to/my-plugin-config.dat .
 ```
 
-Verify all files are present:
+**2. Move the downloaded APK and keystore here:**
 
 ```bash
-ls ~/f5-integrator/
+mv ~/Downloads/app-release.apk .
+mv ~/Downloads/debug.keystore .
 ```
 
-Expected output:
-```
-Integrator-Android-7.0.0.jar
-F5-XC-Mobile-SDK-Integrator-Android-plugin-4.7.0-7.dat
-my-plugin-config.dat
-app-release.apk
-debug.keystore
+**3. Copy the F5 files here too** (adjust filenames to match your versions):
+
+```bash
+cp /path/to/Integrator-Android-x.x.x.jar .
+cp /path/to/F5-XC-Mobile-SDK-Integrator-Android-plugin-x.x.x-x.dat .
+cp /path/to/mobile-base-config.dat .
 ```
 
 ---

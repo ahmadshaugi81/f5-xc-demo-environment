@@ -48,12 +48,20 @@ pip3 install undetected-chromedriver selenium
 | `undetected-chromedriver` | Auto-patches ChromeDriver to bypass bot signature detection |
 | `selenium` | Browser automation framework |
 
-**Step 4 — Verify Chrome is installed:**
+**Step 4 — Install and verify Google Chrome:**
+
+Check if Chrome is already installed:
 
 ```bash
-google-chrome --version    # Linux
-# or
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version   # macOS
+google-chrome --version
+```
+
+If not installed, install it:
+
+```bash
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt install ./google-chrome-stable_current_amd64.deb -y
+google-chrome --version
 ```
 
 > **Note:** Every time you open a new terminal session, re-activate the venv before running the script:

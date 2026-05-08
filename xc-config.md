@@ -196,6 +196,8 @@ The collection includes **two variants** of this request. Choose the one that ma
 
 After this request succeeds, the demo app will be accessible at `https://{{vulnbank_base_url}}`. DNS delegation to F5 XC must be in place for TLS auto-cert provisioning to complete.
 
+> **Integrating the mobile app with F5 Bot Defense SDK?** See [F5 Bot Defense Mobile SDK — Setup Guide](bot-def-sdk.md) for the full walkthrough on fusing the SDK into the `vuln-bank-mobile` APK.
+
 ---
 
 ### Step 7 — Create Demo Users

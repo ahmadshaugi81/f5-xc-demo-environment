@@ -56,13 +56,36 @@ Check if Chrome is already installed:
 google-chrome --version
 ```
 
-If not installed, install it:
+If not installed, check your server architecture first:
 
 ```bash
+dpkg --print-architecture
+```
+
+**If `amd64`** — install dependencies then Chrome:
+
+```bash
+sudo apt update
+sudo apt install -y libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
+  libcairo2 libcups2 libdbus-1-3 libexpat1 libgbm1 libglib2.0-0 \
+  libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libudev1 libvulkan1 \
+  libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
+  libxkbcommon0 libxrandr2 libcurl4
+
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo apt install ./google-chrome-stable_current_amd64.deb -y
 google-chrome --version
 ```
+
+**If `arm64`** — the amd64 package won't work. Install Chromium instead:
+
+```bash
+sudo apt update
+sudo apt install chromium-browser -y
+chromium-browser --version
+```
+
+> ⚠️ If using Chromium on ARM64, `undetected-chromedriver` may not auto-detect it. You may need to pass the binary path explicitly in the script: `options.binary_location = "/usr/bin/chromium-browser"`
 
 > **Note:** Every time you open a new terminal session, re-activate the venv before running the script:
 > ```bash

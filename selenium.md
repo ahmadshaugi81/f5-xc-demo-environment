@@ -22,7 +22,22 @@ This guide walks through setting up a hardened Selenium script that simulates re
 
 ## Section 1 — Installation
 
-**Install dependencies:**
+**Step 1 — Install Python venv support (if not already installed):**
+
+```bash
+sudo apt install python3-full python3-venv -y
+```
+
+**Step 2 — Create and activate a virtual environment:**
+
+```bash
+python3 -m venv ~/selenium-env
+source ~/selenium-env/bin/activate
+```
+
+> Your prompt will change to `(selenium-env)` confirming the venv is active. All packages installed from here go into the venv, not the system Python.
+
+**Step 3 — Install dependencies:**
 
 ```bash
 pip3 install undetected-chromedriver selenium
@@ -33,13 +48,18 @@ pip3 install undetected-chromedriver selenium
 | `undetected-chromedriver` | Auto-patches ChromeDriver to bypass bot signature detection |
 | `selenium` | Browser automation framework |
 
-**Verify Chrome is installed:**
+**Step 4 — Verify Chrome is installed:**
 
 ```bash
 google-chrome --version    # Linux
 # or
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version   # macOS
 ```
+
+> **Note:** Every time you open a new terminal session, re-activate the venv before running the script:
+> ```bash
+> source ~/selenium-env/bin/activate
+> ```
 
 ---
 

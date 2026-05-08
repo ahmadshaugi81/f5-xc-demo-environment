@@ -273,7 +273,7 @@ ls -lh android/app/build/outputs/apk/release/
 # should show: app-release.apk
 ```
 
-### Step 9 — Install APK on Device
+### Step 9 — Download & Install APK on Device
 
 Serve the APK from your server via HTTP:
 
@@ -294,8 +294,9 @@ On your device navigate to:
 http://YOUR_SERVER_IP:8888/app-release.apk
 ```
 
-After successfully download, you may fuse this APK with **F5 Bot Defense SDK** using **F5 Mobile Integrator**, then install the output APK into emulator and Android device.
+Ater download, install the APK on your Android device or emulator.
 
+> **Integrating the mobile app with F5 Bot Defense SDK?** See [F5 Bot Defense Mobile SDK — Setup Guide](bot-def-sdk.md) for the full walkthrough on fusing the SDK into the `vuln-bank-mobile` APK.
 
 ---
 

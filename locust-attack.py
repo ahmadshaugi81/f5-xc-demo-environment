@@ -147,7 +147,7 @@ class UnauthAttackUser(HttpUser):
     Covers SQLi on login, XSS probing, path traversal, and command injection.
     """
 
-    wait_time = between(1, 4)
+    wait_time = between(2, 8)
 
     def on_start(self):
         self.ip, self.ua = pick_identity()
@@ -263,7 +263,7 @@ class AuthAttackUser(HttpUser):
     - BOPLA: sends privilege-escalation fields in POST bodies
     """
 
-    wait_time = between(1, 4)
+    wait_time = between(2, 8)
 
     # john and franklin — known demo credentials
     USER_POOL = [

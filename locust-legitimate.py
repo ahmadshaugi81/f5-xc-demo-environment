@@ -138,7 +138,7 @@ class PreLoginUser(HttpUser):
     No token required for any of these flows.
     """
 
-    wait_time = between(1, 3)
+    wait_time = between(5, 10)
 
     def on_start(self):
         ip, ua = pick_identity()
@@ -211,7 +211,7 @@ class PostLoginUser(HttpUser):
     on_start logs in with one of the known credentials to obtain a JWT.
     """
 
-    wait_time = between(1, 3)
+    wait_time = between(5, 10)
 
     CREDENTIALS = [
         {"username": "john",     "password": "123456"},

@@ -59,7 +59,11 @@ def build_driver():
     options.add_argument("--disable-gpu")
     options.add_argument("--headless=new")
 
-    driver = uc.Chrome(options=options, browser_executable_path="/usr/bin/chromium-browser")
+    driver = uc.Chrome(
+        options=options,
+        browser_executable_path="/usr/bin/chromium-browser",
+        driver_executable_path="/usr/bin/chromedriver",
+    )
 
     # Patch navigator.webdriver to undefined via CDP
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {

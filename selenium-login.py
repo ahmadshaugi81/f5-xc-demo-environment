@@ -17,8 +17,8 @@ from playwright.sync_api import sync_playwright
 
 # ── Config ────────────────────────────────────────────────────
 TARGET_URL   = "https://vulnbank.mytechlab.my.id"
-ITERATIONS   = 50                               # number of login attempts to simulate
-WAIT_BETWEEN = (5, 15)                          # seconds between each login session
+ITERATIONS   = 10                               # number of login attempts to simulate
+WAIT_BETWEEN = (5, 10)                          # seconds between each login session
 
 CREDENTIALS = [
     {"username": "john",     "password": "123456"},
@@ -141,6 +141,7 @@ def main():
                 viewport={"width": 1366, "height": 768},
                 locale="en-US",
                 java_script_enabled=True,
+                extra_http_headers={"X-Forwarded-For": "1.2.3.4"},
             )
 
             # Patch navigator.webdriver to undefined

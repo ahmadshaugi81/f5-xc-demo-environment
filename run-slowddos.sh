@@ -3,8 +3,8 @@
 # ── Config ────────────────────────────────────────────────────
 TARGET="https://vulnbank.yourdomain.com"   # update to your actual domain
 DURATION=900       # 15 minutes in seconds
-CONNECTIONS=500    # per attack type (3 × 500 = 1500 total connections)
-RATE=100           # new connections per second per attack
+CONNECTIONS=50     # per attack type — kept low so XC rate limiting doesn't refuse all connections immediately
+RATE=5             # new connections per second per attack
 
 # ── Setup ─────────────────────────────────────────────────────
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")

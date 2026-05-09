@@ -8,7 +8,9 @@
 
 The traffic generator produces continuous, realistic traffic through the F5 XC load balancer endpoint. Without traffic, the XC dashboards stay empty — no security events, no bot signals, no API discovery data. The traffic generator is what makes the demo environment come alive.
 
-This repo includes two Locust scripts, each serving a distinct purpose:
+On this page, we use **Locust** to generate both legitimate and attack simulation traffic. At the end of this page, there is also a link to an **[optional guide for simulating advanced bot traffic using a real browser](#advanced--simulating-bot-traffic-with-a-real-browser)**.
+
+The two Locust scripts covered here each serve a distinct purpose:
 
 ### `locust-legitimate.py` — Normal User Traffic
 

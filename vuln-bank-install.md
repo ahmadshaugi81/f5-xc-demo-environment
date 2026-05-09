@@ -68,13 +68,16 @@ Linux Server
 
 ### Step 1 — Install Docker
 
+**Docker** and **Docker Compose** are required to run vuln-bank. If not already installed on your server, refer to the official installation guides or any other guides on internet:
+
+- [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+- [Install Docker Compose](https://docs.docker.com/compose/install/)
+
+Verify both are installed before proceeding:
+
 ```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo usermod -aG docker $USER
-newgrp docker
+docker --version
+docker compose version
 ```
 
 ### Step 2 — Clone and Run vuln-bank

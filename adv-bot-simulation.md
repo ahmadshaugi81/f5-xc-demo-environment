@@ -6,6 +6,8 @@
 
 This guide walks through setting up a hardened Playwright script that simulates realistic human login traffic to the `POST /login` endpoint on the vuln-bank application.
 
+**Playwright** ([playwright.dev](https://playwright.dev)) is an open-source browser automation framework by Microsoft. It controls real Chromium, Firefox, or WebKit browsers programmatically — executing JavaScript, handling cookies, and interacting with page elements just like a real user would. Unlike raw HTTP clients (e.g. Locust), Playwright sends requests through a full browser, making the traffic harder to distinguish from real user sessions.
+
 **Why hardened?** Default browser automation tools are easily detected by bot signature engines (F5 XC WAAP, Cloudflare, etc.) due to exposed automation flags. Hardening removes these signals to produce traffic that looks like a real browser user.
 
 > This is useful for testing how traffic appears in F5 XC dashboards **without** Bot Defense enabled. With Bot Defense enabled, even hardened browser automation will be caught by JS telemetry analysis.

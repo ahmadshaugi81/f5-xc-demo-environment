@@ -44,6 +44,12 @@ slowhttptest -h
 
 ---
 
+> **⚡ Choose your path:**
+> - **Run attacks one by one** — follow Sections 2, 3, and 4 below to run each attack type individually and observe the result
+> - **Run all attacks on a schedule** — skip directly to [Section 5 — Run All Attacks Simultaneously on a Schedule](#section-5--run-all-attacks-simultaneously-on-a-schedule) to fire all 3 attacks in parallel and automate them with cron
+
+---
+
 ## Section 2 — Slowloris Attack
 
 Slowloris opens many connections to the target and sends HTTP headers extremely slowly — one partial header at a time — keeping connections alive indefinitely without ever completing a request.

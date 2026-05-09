@@ -221,6 +221,20 @@ pkill -f locust
 
 ---
 
+## Advanced — Simulating Bot Traffic with a Real Browser
+
+The Locust scripts in this repo send raw HTTP requests — they do not use a real browser. For more advanced bot traffic simulation using a hardened browser (Playwright + Chromium), which is harder to detect by F5 XC bot signature engines, see:
+
+**[Advanced Bot Traffic Simulation — adv-bot-simulation.md](adv-bot-simulation.md)**
+
+This covers:
+- Setting up Playwright with Chromium (ARM64-compatible)
+- Patching `navigator.webdriver` and automation flags
+- Simulating human-like login traffic to `POST /login` with randomized timing and credential rotation
+- How F5 XC bot signatures behave with and without Bot Defense enabled
+
+---
+
 ## References
 
 - [Locust Documentation](https://docs.locust.io)

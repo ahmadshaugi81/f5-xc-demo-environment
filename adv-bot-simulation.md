@@ -80,7 +80,7 @@ Standard browser automation exposes several signals that bot detection engines l
 
 ## Section 3 — The Script
 
-The script is included in this repo as [`selenium-login.py`](selenium-login.py). After cloning or pulling the repo, the file is already available — no manual copy needed.
+The script is included in this repo as [`playwright-login.py`](playwright-login.py). After cloning or pulling the repo, the file is already available — no manual copy needed.
 
 ---
 
@@ -88,7 +88,7 @@ The script is included in this repo as [`selenium-login.py`](selenium-login.py).
 
 **Step 1 — Set your target URL:**
 
-Open `selenium-login.py` and update the `TARGET_URL` variable at the top of the config section:
+Open `playwright-login.py` and update the `TARGET_URL` variable at the top of the config section:
 
 ```python
 TARGET_URL = "https://vulnbank.yourdomain.com"
@@ -104,7 +104,7 @@ WAIT_BETWEEN = (5, 15)     # seconds between each session
 **Step 3 — Run the script:**
 
 ```bash
-python3 selenium-login.py
+python3 playwright-login.py
 ```
 
 You should see output like:
@@ -124,13 +124,13 @@ Iterations      : 50
 **Step 4 — Run in the background (optional):**
 
 ```bash
-nohup python3 selenium-login.py > selenium.log 2>&1 &
+nohup python3 playwright-login.py > playwright.log 2>&1 &
 ```
 
 Monitor:
 
 ```bash
-tail -f selenium.log
+tail -f playwright.log
 ```
 
 ---

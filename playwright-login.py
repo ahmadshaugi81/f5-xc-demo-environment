@@ -1,13 +1,13 @@
 """
-Hardened Selenium — vuln-bank Login Traffic Simulator
-=======================================================
+Hardened Playwright — vuln-bank Login Traffic Simulator
+========================================================
 Simulates human-like login traffic to POST /login on the vuln-bank app.
 Rotates between john and franklin credentials with randomized timing.
 
 Uses Playwright with Chromium (ARM64-compatible, non-snap).
 
 Run:
-  python3 selenium-login.py
+  python3 playwright-login.py
 """
 
 import random

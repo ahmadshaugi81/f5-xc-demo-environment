@@ -17,7 +17,7 @@ from playwright.sync_api import sync_playwright
 
 # ── Config ────────────────────────────────────────────────────
 TARGET_URL   = "https://vulnbank.mytechlab.my.id"
-ITERATIONS   = 10                               # number of login attempts to simulate
+ITERATIONS   = 25                               # number of login attempts to simulate
 WAIT_BETWEEN = (5, 10)                          # seconds between each login session
 
 CREDENTIALS = [
